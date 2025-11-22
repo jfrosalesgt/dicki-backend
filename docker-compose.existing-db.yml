@@ -1,0 +1,39 @@
+# Si ya tienes SQL Server en Docker
+version: '3.8'
+
+services:
+  # Backend API conectándose a SQL Server existente
+  dicri-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dicri-backend
+    restart: unless-stopped
+    ports:
+      - "3030:3030"
+    environment:
+      - NODE_ENV=production
+      - PORT=3030
+      # Database - conectar a SQL Server existente
+      - DB_SERVER=host.docker.internal
+      - DB_PORT=1434
+      - DB_USER=appindicios
+      - DB_PASSWORD=Ind1c10$
+      - DB_DATABASE=dicri-indicios
+      - DB_ENCRYPT=false
+      - DB_TRUST_SERVER_CERTIFICATE=true
+      # JWT
+      - JWT_SECRET=d1cr1c10$$-pr0d-s3cr3t-k3y-ch4ng3-th1s-1n-pr0duct10n
+      - JWT_ALGORITHM=HS256
+      - JWT_EXPIRES_IN=8h
+      - JWT_REFRESH_EXPIRES_IN=7d
+      # CORS
+      - CORS_ORIGIN=*
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3030/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
