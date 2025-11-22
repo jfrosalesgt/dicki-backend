@@ -296,6 +296,422 @@ PATCH /api/users/:id/deactivate
 Authorization: Bearer <token>
 ```
 
+---
+
+### 📁 Expedientes DICRI (`/api/expedientes`)
+
+**⚠️ Todas las rutas requieren autenticación**
+
+#### 📋 Listar expedientes
+```http
+GET /api/expedientes
+Authorization: Bearer <token>
+```
+
+**Parámetros de consulta opcionales:**
+- `activo` (boolean): Filtrar por expedientes activos/inactivos
+- `estado_revision` (string): EN_REGISTRO | PENDIENTE_REVISION | APROBADO | RECHAZADO
+- `id_usuario_registro` (number): Filtrar por técnico que registró
+- `id_fiscalia` (number): Filtrar por fiscalía
+
+**Respuesta (200):**
+```json
+{
+  "success": true,
+  "message": "Expedientes obtenidos exitosamente",
+  "data": [
+    {
+      "id_investigacion": 1,
+      "codigo_caso": "MP001-2025-1001",
+      "nombre_caso": "Homicidio en Zona 10",
+      "fecha_inicio": "2025-11-20",
+      "id_fiscalia": 1,
+      "nombre_fiscalia": "Fiscalía de Delitos contra la Vida",
+      "descripcion_hechos": "Investigación sobre el hallazgo de un cuerpo",
+      "estado_revision_dicri": "EN_REGISTRO",
+      "id_usuario_registro": 2,
+      "activo": true,
+      "fecha_creacion": "2025-11-22T10:30:00.000Z"
+    }
+  ]
+}
+```
+
+#### 🔍 Obtener expediente por ID
+```http
+GET /api/expedientes/:id
+Authorization: Bearer <token>
+```
+
+#### ➕ Crear expediente (TECNICO_DICRI, COORDINADOR_DICRI, ADMIN)
+```http
+POST /api/expedientes
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "codigo_caso": "MP001-2025-1001",
+  "nombre_caso": "Homicidio en Zona 10",
+  "fecha_inicio": "2025-11-20",
+  "id_fiscalia": 1,
+  "descripcion_hechos": "Investigación sobre el hallazgo de un cuerpo con herida de bala"
+}
+```
+
+**Validaciones:**
+- `codigo_caso`: Obligatorio, máximo 50 caracteres, único
+- `nombre_caso`: Obligatorio, máximo 255 caracteres
+- `fecha_inicio`: Obligatorio, formato ISO 8601 (YYYY-MM-DD)
+- `id_fiscalia`: Obligatorio, ID válido de fiscalía
+- `descripcion_hechos`: Opcional, texto
+
+#### ✏️ Actualizar expediente (TECNICO_DICRI, COORDINADOR_DICRI, ADMIN)
+```http
+PUT /api/expedientes/:id
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "nombre_caso": "Homicidio en Zona 10 - Actualizado",
+  "descripcion_hechos": "Descripción actualizada del caso",
+  "activo": true
+}
+```
+
+#### ❌ Eliminar expediente (COORDINADOR_DICRI, ADMIN)
+```http
+DELETE /api/expedientes/:id
+Authorization: Bearer <token>
+```
+
+**Nota:** Eliminación lógica (desactiva el registro)
+
+#### 📤 Enviar a revisión (TECNICO_DICRI, ADMIN)
+```http
+POST /api/expedientes/:id/enviar-revision
+Authorization: Bearer <token>
+```
+
+**Requisitos:**
+- El expediente debe estar en estado `EN_REGISTRO` o `RECHAZADO`
+
+#### ✅ Aprobar expediente (COORDINADOR_DICRI, ADMIN)
+```http
+POST /api/expedientes/:id/aprobar
+Authorization: Bearer <token>
+```
+
+**Requisitos:**
+- El expediente debe estar en estado `PENDIENTE_REVISION` o `RECHAZADO`
+
+#### ⚠️ Rechazar expediente (COORDINADOR_DICRI, ADMIN)
+```http
+POST /api/expedientes/:id/rechazar
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "justificacion": "Faltan campos de metadatos en el registro de los equipos digitales. Favor complementar."
+}
+```
+
+**Requisitos:**
+- El expediente debe estar en estado `PENDIENTE_REVISION`
+- La justificación es obligatoria (mínimo 10 caracteres)
+
+---
+
+### 🔬 Indicios (`/api/indicios` y `/api/expedientes/:id/indicios`)
+
+**⚠️ Todas las rutas requieren autenticación**
+
+#### 📋 Listar todos los indicios
+```http
+GET /api/indicios
+Authorization: Bearer <token>
+```
+
+**Parámetros de consulta opcionales:**
+- `activo` (boolean): Filtrar por indicios activos/inactivos
+- `id_escena` (number): Filtrar por escena
+- `id_tipo_indicio` (number): Filtrar por tipo de indicio
+- `estado_actual` (string): RECOLECTADO | EN_CUSTODIA | EN_ANALISIS | ANALIZADO | DEVUELTO
+
+**Respuesta (200):**
+```json
+{
+  "success": true,
+  "message": "Indicios obtenidos exitosamente",
+  "data": [
+    {
+      "id_indicio": 1,
+      "codigo_indicio": "IND-001-2025",
+      "id_escena": 1,
+      "id_tipo_indicio": 1,
+      "descripcion_corta": "Arma de fuego calibre 9mm",
+      "ubicacion_especifica": "Sala principal, junto a la ventana",
+      "fecha_hora_recoleccion": "2025-11-20T14:30:00.000Z",
+      "id_usuario_recolector": 2,
+      "estado_actual": "RECOLECTADO",
+      "activo": true,
+      "nombre_escena": "Escena Principal",
+      "nombre_tipo": "Arma de Fuego",
+      "nombre_recolector": "Juan Pérez"
+    }
+  ]
+}
+```
+
+#### 🔍 Obtener indicio por ID
+```http
+GET /api/indicios/:id
+Authorization: Bearer <token>
+```
+
+#### 📦 Obtener indicios de un expediente
+```http
+GET /api/expedientes/:id/indicios
+Authorization: Bearer <token>
+```
+
+**Descripción:** Retorna todos los indicios asociados a un expediente (de todas sus escenas)
+
+#### ➕ Crear indicio en un expediente (TECNICO_DICRI, COORDINADOR_DICRI, ADMIN)
+```http
+POST /api/expedientes/:id/indicios
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "codigo_indicio": "IND-001-2025",
+  "id_escena": 1,
+  "id_tipo_indicio": 1,
+  "descripcion_corta": "Arma de fuego calibre 9mm",
+  "ubicacion_especifica": "Sala principal, junto a la ventana",
+  "fecha_hora_recoleccion": "2025-11-20T14:30:00Z"
+}
+```
+
+**Validaciones:**
+- `codigo_indicio`: Obligatorio, máximo 50 caracteres, único
+- `id_escena`: Obligatorio, debe existir y pertenecer al expediente
+- `id_tipo_indicio`: Obligatorio, debe ser un tipo válido
+- `descripcion_corta`: Obligatorio, máximo 255 caracteres
+- `ubicacion_especifica`: Opcional, máximo 100 caracteres
+- `fecha_hora_recoleccion`: Opcional (si no se envía, usa fecha actual)
+
+**Restricciones:**
+- ❌ No se pueden agregar indicios a expedientes en estado `APROBADO`
+
+#### ✏️ Actualizar indicio (TECNICO_DICRI, COORDINADOR_DICRI, ADMIN)
+```http
+PUT /api/indicios/:id
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "descripcion_corta": "Arma de fuego calibre 9mm marca Glock",
+  "ubicacion_especifica": "Actualizada ubicación específica",
+  "estado_actual": "EN_CUSTODIA"
+}
+```
+
+**Estados disponibles:**
+- `RECOLECTADO`: Indicio recién recolectado en escena
+- `EN_CUSTODIA`: Indicio almacenado en bodega
+- `EN_ANALISIS`: Indicio siendo analizado
+- `ANALIZADO`: Análisis completado
+- `DEVUELTO`: Indicio devuelto
+
+**Restricciones:**
+- ❌ No se pueden modificar indicios de expedientes en estado `APROBADO`
+
+#### ❌ Eliminar indicio (TECNICO_DICRI, COORDINADOR_DICRI, ADMIN)
+```http
+DELETE /api/indicios/:id
+Authorization: Bearer <token>
+```
+
+**Restricciones:**
+- ❌ No se pueden eliminar indicios de expedientes en estado `APROBADO`
+- **Nota:** Eliminación lógica (desactiva el registro)
+
+---
+
+### 📁 Fiscalías (`/api/fiscalias`)
+
+**⚠️ Todas las rutas requieren autenticación**
+
+#### 📋 Listar todas las fiscalías
+```http
+GET /api/fiscalias
+Authorization: Bearer <token>
+```
+
+**Parámetros de consulta opcionales:**
+- `activo` (boolean): Filtrar por fiscalías activas/inactivas
+
+**Respuesta (200):**
+```json
+{
+  "success": true,
+  "message": "Fiscalías obtenidas exitosamente",
+  "data": [
+    {
+      "id_fiscalia": 1,
+      "nombre_fiscalia": "Fiscalía de Delitos contra la Vida",
+      "direccion": "Ciudad de Guatemala, Zona 1",
+      "telefono": "2222-3333",
+      "activo": true,
+      "usuario_creacion": "SYSTEM",
+      "fecha_creacion": "2025-11-22T18:20:06.853Z"
+    }
+  ]
+}
+```
+
+#### 🔍 Obtener fiscalía por ID
+```http
+GET /api/fiscalias/:id
+Authorization: Bearer <token>
+```
+
+#### ➕ Crear fiscalía (ADMIN)
+```http
+POST /api/fiscalias
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "nombre_fiscalia": "Fiscalía de Delitos Económicos",
+  "direccion": "Zona 4, Ciudad de Guatemala",
+  "telefono": "2333-4444"
+}
+```
+
+**Validaciones:**
+- `nombre_fiscalia`: Obligatorio, máximo 150 caracteres, único
+- `direccion`: Opcional, máximo 255 caracteres
+- `telefono`: Opcional, máximo 20 caracteres, formato válido
+
+#### ✏️ Actualizar fiscalía (ADMIN)
+```http
+PUT /api/fiscalias/:id
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "nombre_fiscalia": "Fiscalía de Delitos Económicos Actualizada",
+  "direccion": "Nueva dirección",
+  "telefono": "2444-5555",
+  "activo": true
+}
+```
+
+#### ❌ Eliminar fiscalía (ADMIN)
+```http
+DELETE /api/fiscalias/:id
+Authorization: Bearer <token>
+```
+
+**Nota:** Eliminación lógica (desactiva el registro)
+
+---
+
+### 🏷️ Tipos de Indicio (`/api/tipos-indicio`)
+
+**⚠️ Todas las rutas requieren autenticación**
+
+#### 📋 Listar todos los tipos de indicio
+```http
+GET /api/tipos-indicio
+Authorization: Bearer <token>
+```
+
+**Parámetros de consulta opcionales:**
+- `activo` (boolean): Filtrar por tipos activos/inactivos
+
+**Respuesta (200):**
+```json
+{
+  "success": true,
+  "message": "Tipos de indicio obtenidos exitosamente",
+  "data": [
+    {
+      "id_tipo_indicio": 1,
+      "nombre_tipo": "Arma de Fuego",
+      "descripcion": "Armas de cualquier tipo y calibre",
+      "activo": true,
+      "usuario_creacion": "SYSTEM",
+      "fecha_creacion": "2025-11-22T18:20:06.870Z"
+    }
+  ]
+}
+```
+
+#### 🔍 Obtener tipo de indicio por ID
+```http
+GET /api/tipos-indicio/:id
+Authorization: Bearer <token>
+```
+
+#### ➕ Crear tipo de indicio (ADMIN, COORDINADOR_DICRI)
+```http
+POST /api/tipos-indicio
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "nombre_tipo": "Evidencia Digital",
+  "descripcion": "Dispositivos electrónicos y medios de almacenamiento"
+}
+```
+
+**Validaciones:**
+- `nombre_tipo`: Obligatorio, máximo 100 caracteres, único
+- `descripcion`: Opcional, máximo 255 caracteres
+
+#### ✏️ Actualizar tipo de indicio (ADMIN, COORDINADOR_DICRI)
+```http
+PUT /api/tipos-indicio/:id
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "nombre_tipo": "Evidencia Digital Actualizada",
+  "descripcion": "Nueva descripción",
+  "activo": true
+}
+```
+
+#### ❌ Eliminar tipo de indicio (ADMIN, COORDINADOR_DICRI)
+```http
+DELETE /api/tipos-indicio/:id
+Authorization: Bearer <token>
+```
+
+**Nota:** Eliminación lógica (desactiva el registro)
+
+---
+
+## 🔄 Flujo de Estados de Expedientes
+
+```
+EN_REGISTRO → (Enviar a revisión) → PENDIENTE_REVISION
+                                            ↓
+                                         Aprobar → APROBADO
+                                            ↓
+                                        Rechazar → RECHAZADO → (Corregir y reenviar) → PENDIENTE_REVISION
+```
+
+### Estados disponibles:
+- **EN_REGISTRO**: Expediente siendo completado por el técnico
+- **PENDIENTE_REVISION**: Expediente listo para revisión del coordinador
+- **APROBADO**: Expediente revisado y validado
+- **RECHAZADO**: Expediente requiere correcciones
+
+---
+
 ### 🏥 Health Check
 ```http
 GET /api/health
