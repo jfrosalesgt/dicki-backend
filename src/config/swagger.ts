@@ -33,25 +33,6 @@ const swaggerDefinition = {
       },
     },
     schemas: {
-      Error: {
-        type: 'object',
-        properties: {
-          success: {
-            type: 'boolean',
-            example: false,
-          },
-          message: {
-            type: 'string',
-            example: 'Mensaje de error',
-          },
-          errors: {
-            type: 'array',
-            items: {
-              type: 'object',
-            },
-          },
-        },
-      },
       LoginRequest: {
         type: 'object',
         required: ['nombre_usuario', 'clave'],
@@ -59,24 +40,20 @@ const swaggerDefinition = {
           nombre_usuario: {
             type: 'string',
             example: 'admin',
+            description: 'Nombre de usuario',
           },
           clave: {
             type: 'string',
             example: 'admin123',
+            description: 'Contraseña del usuario',
           },
         },
       },
       LoginResponse: {
         type: 'object',
         properties: {
-          success: {
-            type: 'boolean',
-            example: true,
-          },
-          message: {
-            type: 'string',
-            example: 'Login exitoso',
-          },
+          success: { type: 'boolean', example: true },
+          message: { type: 'string', example: '✨ Login exitoso ✨' },
           data: {
             type: 'object',
             properties: {
@@ -117,6 +94,21 @@ const swaggerDefinition = {
                   },
                 },
               },
+              modulos: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id_modulo: { type: 'number', example: 1 },
+                    nombre_modulo: { type: 'string', example: 'Dashboard' },
+                    descripcion: { type: 'string', example: 'Vista principal del sistema' },
+                    ruta: { type: 'string', example: '/dashboard' },
+                    icono: { type: 'string', example: 'home' },
+                    orden: { type: 'number', example: 1 },
+                    activo: { type: 'boolean', example: true },
+                  },
+                },
+              },
             },
           },
         },
@@ -128,30 +120,13 @@ const swaggerDefinition = {
           clave_actual: {
             type: 'string',
             example: 'admin123',
+            description: 'Contraseña actual',
           },
           clave_nueva: {
             type: 'string',
-            example: 'Admin2024!',
-            description: 'Debe contener al menos una mayúscula, una minúscula y un número',
+            example: 'NuevaPass123',
+            description: 'Nueva contraseña (mín. 6 caracteres, debe contener mayúscula, minúscula y número)',
           },
-        },
-      },
-      Usuario: {
-        type: 'object',
-        properties: {
-          id_usuario: { type: 'number', example: 1 },
-          nombre_usuario: { type: 'string', example: 'jperez' },
-          nombre: { type: 'string', example: 'Juan' },
-          apellido: { type: 'string', example: 'Pérez' },
-          email: { type: 'string', example: 'jperez@dicri.com' },
-          activo: { type: 'boolean', example: true },
-          cambiar_clave: { type: 'boolean', example: false },
-          intentos_fallidos: { type: 'number', example: 0 },
-          fecha_ultimo_acceso: { type: 'string', format: 'date-time' },
-          usuario_creacion: { type: 'string', example: 'admin' },
-          fecha_creacion: { type: 'string', format: 'date-time' },
-          usuario_actualizacion: { type: 'string' },
-          fecha_actualizacion: { type: 'string', format: 'date-time' },
         },
       },
       CreateUsuarioRequest: {
@@ -172,6 +147,14 @@ const swaggerDefinition = {
           apellido: { type: 'string', example: 'Pérez' },
           email: { type: 'string', example: 'jcperez@dicri.com' },
           activo: { type: 'boolean', example: true },
+        },
+      },
+      Error: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean', example: false },
+          message: { type: 'string', example: 'Mensaje de error' },
+          errors: { type: 'array', items: { type: 'object' } },
         },
       },
     },

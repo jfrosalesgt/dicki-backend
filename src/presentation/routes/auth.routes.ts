@@ -90,6 +90,6 @@ router.get('/verify', authMiddleware, authController.verifyToken);
  *       401:
  *         description: No autorizado
  */
-router.get('/me', authMiddleware, authController.getMe);
+router.get('/me', authMiddleware, authController.me);
 
 export default router;

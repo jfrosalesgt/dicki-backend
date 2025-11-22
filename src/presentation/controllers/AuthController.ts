@@ -3,6 +3,7 @@ import { AuthService, LoginDTO, ChangePaswordDTO } from '../../application/servi
 import { UsuarioRepository } from '../../infrastructure/repositories/UsuarioRepository';
 import { PerfilRepository } from '../../infrastructure/repositories/PerfilRepository';
 import { RoleRepository } from '../../infrastructure/repositories/RoleRepository';
+import { ModuloRepository } from '../../infrastructure/repositories/ModuloRepository';
 import { ResponseHandler } from '../../shared/utils/ResponseHandler';
 import { AuthRequest } from '../../infrastructure/middleware/auth.middleware';
 import { logger } from '../../shared/utils/logger';
@@ -14,11 +15,13 @@ export class AuthController {
     const usuarioRepository = new UsuarioRepository();
     const perfilRepository = new PerfilRepository();
     const roleRepository = new RoleRepository();
+    const moduloRepository = new ModuloRepository();
     
     this.authService = new AuthService(
       usuarioRepository,
       perfilRepository,
-      roleRepository
+      roleRepository,
+      moduloRepository
     );
   }
 
@@ -81,13 +84,38 @@ export class AuthController {
    * GET /api/auth/me
    * Obtiene información del usuario autenticado
    */
-  getMe = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  me = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       if (!req.user) {
         throw new Error('Usuario no autenticado');
       }
 
-      res.json(ResponseHandler.success(req.user, 'Información del usuario'));
+      // Obtener información completa del usuario
+      const usuarioRepository = new UsuarioRepository();
+      const perfilRepository = new PerfilRepository();
+      const roleRepository = new RoleRepository();
+      const moduloRepository = new ModuloRepository();
+
+      const usuario = await usuarioRepository.findById(req.user.id_usuario);
+      const perfiles = await perfilRepository.findByUsuario(req.user.id_usuario);
+      const roles = await roleRepository.findByUsuario(req.user.id_usuario);
+      const modulos = await moduloRepository.findByUsuario(req.user.id_usuario);
+
+      const modulosOrdenados = modulos.sort((a, b) => a.orden - b.orden);
+
+      res.json(ResponseHandler.success({
+        usuario: {
+          id_usuario: usuario?.id_usuario,
+          nombre_usuario: usuario?.nombre_usuario,
+          nombre: usuario?.nombre,
+          apellido: usuario?.apellido,
+          email: usuario?.email,
+          cambiar_clave: usuario?.cambiar_clave,
+        },
+        perfiles,
+        roles,
+        modulos: modulosOrdenados
+      }, 'Información del usuario obtenida exitosamente'));
     } catch (error) {
       next(error);
     }
