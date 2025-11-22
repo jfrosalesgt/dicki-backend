@@ -30,6 +30,7 @@ export class IndicioRepository implements IIndicioRepository {
       .input('descripcion_corta', sql.NVarChar(255), indicio.descripcion_corta)
       .input('ubicacion_especifica', sql.NVarChar(100), indicio.ubicacion_especifica || null)
       .input('fecha_hora_recoleccion', sql.DateTime, indicio.fecha_hora_recoleccion)
+      .input('id_usuario_recolector', sql.Int, indicio.id_usuario_recolector)
       .input('usuario_creacion', sql.NVarChar(50), indicio.usuario_creacion)
       .execute('sp_Indicio_Create');
 

@@ -85,10 +85,11 @@ export class IndicioController {
         descripcion_corta: req.body.descripcion_corta,
         ubicacion_especifica: req.body.ubicacion_especifica,
         fecha_hora_recoleccion: req.body.fecha_hora_recoleccion ? new Date(req.body.fecha_hora_recoleccion) : new Date(),
+        id_usuario_recolector: req.user.id_usuario,
         usuario_creacion: req.user.nombre_usuario,
       };
 
-      const newIndicio = await this.indicioService.createIndicio(indicioData, req.user.id_usuario);
+      const newIndicio = await this.indicioService.createIndicio(indicioData);
       
       res.status(201).json(ResponseHandler.success(newIndicio, 'Indicio creado exitosamente'));
     } catch (error) {

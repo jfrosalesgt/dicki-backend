@@ -291,6 +291,45 @@ const swaggerDefinition = {
           descripcion: { type: 'string', example: 'Descripción actualizada' },
         },
       },
+      ReporteRevisionExpedientes: {
+        type: 'object',
+        properties: {
+          codigo_caso: { type: 'string', example: 'MP001-2025-1001' },
+          nombre_caso: { type: 'string', example: 'Homicidio en Zona 10' },
+          nombre_fiscalia: { type: 'string', example: 'Fiscalía de Delitos contra la Vida' },
+          fecha_registro: { type: 'string', format: 'date-time', example: '2025-11-20T10:00:00Z' },
+          tecnico_registra: { type: 'string', example: 'Juan Pérez' },
+          estado_actual: { 
+            type: 'string', 
+            enum: ['EN_REGISTRO', 'PENDIENTE_REVISION', 'APROBADO', 'RECHAZADO'],
+            example: 'APROBADO' 
+          },
+          fecha_revision: { type: 'string', format: 'date-time', example: '2025-11-22T15:30:00Z' },
+          coordinador_revision: { type: 'string', example: 'María González' },
+          justificacion_revision: { type: 'string', example: 'Registro completo y cadena de custodia validada' },
+        },
+      },
+      EstadisticasGenerales: {
+        type: 'object',
+        properties: {
+          total_expedientes: { type: 'number', example: 45 },
+          en_registro: { type: 'number', example: 12 },
+          pendiente_revision: { type: 'number', example: 8 },
+          aprobados: { type: 'number', example: 20 },
+          rechazados: { type: 'number', example: 5 },
+          total_indicios: { type: 'number', example: 156 },
+          expedientes_por_fiscalia: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                nombre_fiscalia: { type: 'string', example: 'Fiscalía de Delitos contra la Vida' },
+                total: { type: 'number', example: 25 },
+              },
+            },
+          },
+        },
+      },
       Usuario: {
         type: 'object',
         properties: {

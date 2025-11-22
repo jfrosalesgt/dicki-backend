@@ -21,7 +21,7 @@ export class IndicioService {
     return indicio;
   }
 
-  async createIndicio(indicioData: CreateIndicioDTO, idUsuario: number): Promise<Indicio> {
+  async createIndicio(indicioData: CreateIndicioDTO): Promise<Indicio> {
     // Verificar que la escena existe
     const escena = await this.escenaRepository.findById(indicioData.id_escena);
     if (!escena) {
@@ -38,16 +38,7 @@ export class IndicioService {
       throw ApiError.badRequest('No se pueden agregar indicios a un expediente aprobado');
     }
 
-    // Agregar el ID del usuario recolector
-    const indicioConRecolector = {
-      ...indicioData,
-      id_usuario_recolector: idUsuario,
-    };
-
-    return await this.indicioRepository.create({
-      ...indicioConRecolector,
-      fecha_hora_recoleccion: indicioConRecolector.fecha_hora_recoleccion || new Date(),
-    } as any);
+    return await this.indicioRepository.create(indicioData);
   }
 
   async updateIndicio(id: number, indicioData: UpdateIndicioDTO): Promise<void> {

@@ -26,6 +26,7 @@ export interface CreateIndicioDTO {
   descripcion_corta: string;
   ubicacion_especifica?: string;
   fecha_hora_recoleccion: Date;
+  id_usuario_recolector: number;
   usuario_creacion: string;
 }
 

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { InvestigacionController } from '../controllers/InvestigacionController';
 import { IndicioController } from '../controllers/IndicioController';
+import { EscenaController } from '../controllers/EscenaController';
 import { authMiddleware } from '../../infrastructure/middleware/auth.middleware';
 import { checkRole } from '../../infrastructure/middleware/role.middleware';
 import { validate } from '../../infrastructure/middleware/validation.middleware';
@@ -15,10 +16,14 @@ import {
 import {
   createIndicioValidator,
 } from '../validators/indicio.validator';
+import {
+  createEscenaValidator,
+} from '../validators/escena.validator';
 
 const router = Router();
 const investigacionController = new InvestigacionController();
 const indicioController = new IndicioController();
+const escenaController = new EscenaController();
 
 // Todas las rutas requieren autenticación
 router.use(authMiddleware);
@@ -171,7 +176,7 @@ router.put(
   '/:id',
   checkRole('TECNICO_DICRI', 'COORDINADOR_DICRI', 'ADMIN'),
   validate(updateInvestigacionValidator),
-  investigacionController.updateInvestigacion
+investigacionController.updateInvestigacion
 );
 
 /**
@@ -377,6 +382,81 @@ router.post(
   checkRole('TECNICO_DICRI', 'COORDINADOR_DICRI', 'ADMIN'),
   validate(createIndicioValidator),
   indicioController.createIndicio
+);
+
+/**
+ * @swagger
+ * /api/expedientes/{id}/escenas:
+ *   get:
+ *     summary: Obtener todas las escenas de un expediente
+ *     tags: [Escenas]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del expediente
+ *     responses:
+ *       200:
+ *         description: Lista de escenas del expediente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Escena'
+ *       404:
+ *         description: Expediente no encontrado
+ */
+router.get(
+  '/:id/escenas',
+  escenaController.getEscenasByExpediente
+);
+
+/**
+ * @swagger
+ * /api/expedientes/{id}/escenas:
+ *   post:
+ *     summary: Crear nueva escena asociada a un expediente
+ *     tags: [Escenas]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del expediente
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateEscenaRequest'
+ *     responses:
+ *       201:
+ *         description: Escena creada exitosamente
+ *       400:
+ *         description: Error de validación o expediente aprobado
+ *       404:
+ *         description: Expediente no encontrado
+ */
+router.post(
+  '/:id/escenas',
+  checkRole('TECNICO_DICRI', 'COORDINADOR_DICRI', 'ADMIN'),
+  validate(createEscenaValidator),
+  escenaController.createEscena
 );
 
 export default router;

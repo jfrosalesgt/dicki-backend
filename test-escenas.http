@@ -1,0 +1,47 @@
+### Test Escena Endpoints
+### First, login to get a token
+POST http://localhost:3030/api/auth/login
+Content-Type: application/json
+
+{
+  "nombre_usuario": "admin",
+  "clave": "admin123"
+}
+
+###
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... # Replace with actual token from login
+
+### Get scenes of an investigation (expediente)
+GET http://localhost:3030/api/expedientes/1/escenas
+Authorization: Bearer {{token}}
+
+### Create a new scene for an investigation
+POST http://localhost:3030/api/expedientes/1/escenas
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre_escena": "Escena Principal - Sala de Estar",
+  "direccion_escena": "Av. Las Américas 5-67 Zona 10, Ciudad de Guatemala",
+  "fecha_hora_inicio": "2025-11-20T08:00:00Z",
+  "fecha_hora_fin": "2025-11-20T18:00:00Z",
+  "descripcion": "Escena del crimen principal, ubicada en la sala de estar de la vivienda"
+}
+
+### Get a specific scene by ID
+GET http://localhost:3030/api/escenas/1
+Authorization: Bearer {{token}}
+
+### Update a scene
+PUT http://localhost:3030/api/escenas/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre_escena": "Escena Principal - Sala de Estar (Actualizada)",
+  "descripcion": "Escena actualizada con nueva información"
+}
+
+### Delete (deactivate) a scene
+DELETE http://localhost:3030/api/escenas/1
+Authorization: Bearer {{token}}
