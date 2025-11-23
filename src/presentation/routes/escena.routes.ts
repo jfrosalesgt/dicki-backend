@@ -93,7 +93,7 @@ router.get(
 router.put(
   '/:id',
   authMiddleware,
-  checkRole('COORDINADOR_DICRI', 'ADMIN'),
+  checkRole('TECNICO_DICRI', 'COORDINADOR_DICRI', 'ADMIN'),
   validate(updateEscenaValidator),
   escenaController.updateEscena
 );
@@ -128,7 +128,7 @@ router.put(
 router.delete(
   '/:id',
   authMiddleware,
-  checkRole('COORDINADOR_DICRI', 'ADMIN'),
+  checkRole('TECNICO_DICRI', 'COORDINADOR_DICRI', 'ADMIN'),
   escenaController.deleteEscena
 );
 

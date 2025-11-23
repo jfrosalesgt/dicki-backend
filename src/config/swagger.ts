@@ -7,10 +7,11 @@ const swaggerDefinition = {
   info: {
     title: 'DICRI Backend API',
     version: '1.0.0',
-    description: 'API REST para el sistema DICRI con autenticación JWT, gestión de usuarios, perfiles, roles y módulos',
+    description: 'API REST para el sistema DICRI con autenticación JWT, gestión de usuarios, perfiles, roles y módulos - Prueba Técnica',
     contact: {
-      name: 'DICRI Team',
-      email: 'support@dicri.com',
+      name: 'José Fernando Rosales Escobar',
+      email: 'fernando.rosales.gt@gmail.com',
+      phone: '3302-1642'
     },
   },
   servers: [
@@ -161,7 +162,7 @@ const swaggerDefinition = {
         type: 'object',
         properties: {
           id_investigacion: { type: 'number', example: 1 },
-          codigo_caso: { type: 'string', example: 'MP001-2025-1001' },
+          codigo_caso: { type: 'string', example: 'DICRI-001-2025-1001' },
           nombre_caso: { type: 'string', example: 'Homicidio en Zona 10' },
           fecha_inicio: { type: 'string', format: 'date', example: '2025-11-20' },
           id_fiscalia: { type: 'number', example: 1 },
@@ -187,7 +188,7 @@ const swaggerDefinition = {
         type: 'object',
         required: ['codigo_caso', 'nombre_caso', 'fecha_inicio', 'id_fiscalia'],
         properties: {
-          codigo_caso: { type: 'string', example: 'MP001-2025-1001', maxLength: 50 },
+          codigo_caso: { type: 'string', example: 'DICRI-001-2025-1001', maxLength: 50 },
           nombre_caso: { type: 'string', example: 'Homicidio en Zona 10', maxLength: 255 },
           fecha_inicio: { type: 'string', format: 'date', example: '2025-11-20' },
           id_fiscalia: { type: 'number', example: 1 },
@@ -258,7 +259,7 @@ const swaggerDefinition = {
           id_escena: { type: 'number', example: 1 },
           id_investigacion: { type: 'number', example: 1 },
           nombre_escena: { type: 'string', example: 'Escena Principal' },
-          direccion_escena: { type: 'string', example: 'Av. Las Américas 5-67 Zona 10' },
+          direccion_escena: { type: 'string', example: 'Ciudad de Guatemala' },
           fecha_hora_inicio: { type: 'string', format: 'date-time', example: '2025-11-20T08:00:00Z' },
           fecha_hora_fin: { type: 'string', format: 'date-time', example: '2025-11-20T18:00:00Z' },
           descripcion: { type: 'string', example: 'Escena del crimen principal, habitación principal de la vivienda' },
@@ -275,7 +276,7 @@ const swaggerDefinition = {
         properties: {
           id_investigacion: { type: 'number', example: 1 },
           nombre_escena: { type: 'string', example: 'Escena Principal', maxLength: 100 },
-          direccion_escena: { type: 'string', example: 'Av. Las Américas 5-67 Zona 10', maxLength: 255 },
+          direccion_escena: { type: 'string', example: 'Ciudad de Guatemala', maxLength: 255 },
           fecha_hora_inicio: { type: 'string', format: 'date-time', example: '2025-11-20T08:00:00Z' },
           fecha_hora_fin: { type: 'string', format: 'date-time', example: '2025-11-20T18:00:00Z' },
           descripcion: { type: 'string', example: 'Descripción detallada de la escena' },
@@ -294,7 +295,7 @@ const swaggerDefinition = {
       ReporteRevisionExpedientes: {
         type: 'object',
         properties: {
-          codigo_caso: { type: 'string', example: 'MP001-2025-1001' },
+          codigo_caso: { type: 'string', example: 'DICRI-001-2025-1001' },
           nombre_caso: { type: 'string', example: 'Homicidio en Zona 10' },
           nombre_fiscalia: { type: 'string', example: 'Fiscalía de Delitos contra la Vida' },
           fecha_registro: { type: 'string', format: 'date-time', example: '2025-11-20T10:00:00Z' },
@@ -394,8 +395,8 @@ const swaggerDefinition = {
         properties: {
           id_fiscalia: { type: 'number', example: 1 },
           nombre_fiscalia: { type: 'string', example: 'Fiscalía de Delitos contra la Vida' },
-          direccion: { type: 'string', example: 'Ciudad de Guatemala, Zona 1' },
-          telefono: { type: 'string', example: '2222-3333' },
+          direccion: { type: 'string', example: 'Ciudad de Guatemala' },
+          telefono: { type: 'string', example: '3302-1642' },
           activo: { type: 'boolean', example: true },
           usuario_creacion: { type: 'string', example: 'SYSTEM' },
           fecha_creacion: { type: 'string', format: 'date-time' },

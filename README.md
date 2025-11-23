@@ -1,6 +1,6 @@
 # DICRI Backend API
 
-Backend desarrollado con Express.js, TypeScript y SQL Server 2022 para el sistema DICRI.
+Backend desarrollado con Express.js, TypeScript y SQL Server 2022 - Prueba Técnica por José Fernando Rosales Escobar.
 
 ## 🚀 Características
 
@@ -324,7 +324,7 @@ Authorization: Bearer <token>
   "data": [
     {
       "id_investigacion": 1,
-      "codigo_caso": "MP001-2025-1001",
+      "codigo_caso": "DICRI-001-2025-1001",
       "nombre_caso": "Homicidio en Zona 10",
       "fecha_inicio": "2025-11-20",
       "id_fiscalia": 1,
@@ -352,7 +352,7 @@ Authorization: Bearer <token>
 Content-Type: application/json
 
 {
-  "codigo_caso": "MP001-2025-1001",
+  "codigo_caso": "DICRI-001-2025-1001",
   "nombre_caso": "Homicidio en Zona 10",
   "fecha_inicio": "2025-11-20",
   "id_fiscalia": 1,
@@ -1293,6 +1293,11 @@ El servidor está configurado para debugging en el puerto **9229**:
 
 ISC
 
-## 👨‍💻 Desarrollado por
+## 👨‍💻 Autor
 
-DICRI Team - 2025
+**José Fernando Rosales Escobar**
+- 📧 Email: fernando.rosales.gt@gmail.com
+- 📱 Teléfono: 3302-1642
+- 📅 Año: 2025
+- 📋 Proyecto: Prueba Técnica - Sistema DICRI Backend
+

@@ -38,14 +38,18 @@ export class EscenaService {
     // Verificar que existe
     const escena = await this.getEscenaById(id);
     
-    // Verificar que el expediente no esté aprobado
+    // Verificar que el expediente existe
     const investigacion = await this.investigacionRepository.findById(escena.id_investigacion);
     if (!investigacion) {
       throw ApiError.notFound('Expediente no encontrado');
     }
 
-    if (investigacion.estado_revision_dicri === 'APROBADO') {
-      throw ApiError.badRequest('No se pueden modificar escenas de un expediente aprobado');
+    // Solo permitir modificar escenas si el expediente está EN_REGISTRO o RECHAZADO
+    if (!['EN_REGISTRO', 'RECHAZADO'].includes(investigacion.estado_revision_dicri)) {
+      throw ApiError.badRequest(
+        `No se pueden modificar escenas de un expediente en estado ${investigacion.estado_revision_dicri}. ` +
+        'Solo se permiten modificaciones cuando el expediente está EN_REGISTRO o RECHAZADO'
+      );
     }
 
     await this.escenaRepository.update(id, escenaData);
@@ -55,14 +59,18 @@ export class EscenaService {
     // Verificar que existe
     const escena = await this.getEscenaById(id);
     
-    // Verificar que el expediente no esté aprobado
+    // Verificar que el expediente existe
     const investigacion = await this.investigacionRepository.findById(escena.id_investigacion);
     if (!investigacion) {
       throw ApiError.notFound('Expediente no encontrado');
     }
 
-    if (investigacion.estado_revision_dicri === 'APROBADO') {
-      throw ApiError.badRequest('No se pueden eliminar escenas de un expediente aprobado');
+    // Solo permitir eliminar escenas si el expediente está EN_REGISTRO o RECHAZADO
+    if (!['EN_REGISTRO', 'RECHAZADO'].includes(investigacion.estado_revision_dicri)) {
+      throw ApiError.badRequest(
+        `No se pueden eliminar escenas de un expediente en estado ${investigacion.estado_revision_dicri}. ` +
+        'Solo se permiten eliminaciones cuando el expediente está EN_REGISTRO o RECHAZADO'
+      );
     }
 
     await this.escenaRepository.delete(id, usuario_actualizacion);
