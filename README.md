@@ -310,9 +310,11 @@ Authorization: Bearer <token>
 
 **Parámetros de consulta opcionales:**
 - `activo` (boolean): Filtrar por expedientes activos/inactivos
-- `estado_revision` (string): EN_REGISTRO | PENDIENTE_REVISION | APROBADO | RECHAZADO
+- `estado_revision` (string): EN_REGISTRO | PENDIENTE_REVISION | APROBADO | RECHAZADO | ELIMINADO
 - `id_usuario_registro` (number): Filtrar por técnico que registró
 - `id_fiscalia` (number): Filtrar por fiscalía
+
+**Ordenamiento:** Los resultados se ordenan por `fecha_creacion` descendente (más recientes primero)
 
 **Respuesta (200):**
 ```json
@@ -378,13 +380,16 @@ Content-Type: application/json
 }
 ```
 
-#### ❌ Eliminar expediente (COORDINADOR_DICRI, ADMIN)
+#### ❌ Eliminar expediente (TECNICO_DICRI, COORDINADOR_DICRI, ADMIN)
 ```http
 DELETE /api/expedientes/:id
 Authorization: Bearer <token>
 ```
 
-**Nota:** Eliminación lógica (desactiva el registro)
+**Efectos de la eliminación:**
+- ✅ Campo `activo` cambia a `0` (desactivado)
+- ✅ Campo `estado_revision_dicri` cambia a `ELIMINADO`
+- ℹ️ Eliminación lógica (no se elimina físicamente el registro)
 
 #### 📤 Enviar a revisión (TECNICO_DICRI, ADMIN)
 ```http
@@ -618,6 +623,192 @@ Authorization: Bearer <token>
 
 ---
 
+### 🎬 Escenas (`/api/escenas` y `/api/expedientes/:id/escenas`)
+
+**⚠️ Todas las rutas requieren autenticación**
+
+#### 📋 Listar todas las escenas
+```http
+GET /api/escenas
+Authorization: Bearer <token>
+```
+
+**Parámetros de consulta opcionales:**
+- `activo` (boolean): Filtrar por escenas activas/inactivas
+- `id_investigacion` (number): Filtrar por expediente
+
+**Respuesta (200):**
+```json
+{
+  "success": true,
+  "message": "Escenas obtenidas exitosamente",
+  "data": [
+    {
+      "id_escena": 1,
+      "id_investigacion": 1,
+      "nombre_escena": "Escena Principal - Sala",
+      "direccion_escena": "5ta Avenida 10-25 Zona 10, Ciudad de Guatemala",
+      "fecha_hora_inicio": "2025-11-20T08:00:00.000Z",
+      "fecha_hora_fin": "2025-11-20T14:30:00.000Z",
+      "descripcion": "Sala principal donde se encontró el cuerpo",
+      "activo": true,
+      "fecha_creacion": "2025-11-22T10:30:00.000Z"
+    }
+  ]
+}
+```
+
+#### 🔍 Obtener escena por ID
+```http
+GET /api/escenas/:id
+Authorization: Bearer <token>
+```
+
+#### 📦 Obtener escenas de un expediente
+```http
+GET /api/expedientes/:id/escenas
+Authorization: Bearer <token>
+```
+
+**Descripción:** Retorna todas las escenas asociadas a un expediente específico
+
+#### ➕ Crear escena en un expediente (TECNICO_DICRI, COORDINADOR_DICRI, ADMIN)
+```http
+POST /api/expedientes/:id/escenas
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "nombre_escena": "Escena Principal - Sala",
+  "direccion_escena": "5ta Avenida 10-25 Zona 10, Ciudad de Guatemala",
+  "fecha_hora_inicio": "2025-11-20T08:00:00Z",
+  "fecha_hora_fin": "2025-11-20T14:30:00Z",
+  "descripcion": "Sala principal donde se encontró el cuerpo"
+}
+```
+
+**Validaciones:**
+- `nombre_escena`: Obligatorio, máximo 150 caracteres
+- `direccion_escena`: Obligatorio, máximo 255 caracteres
+- `fecha_hora_inicio`: Obligatorio, formato ISO 8601 (YYYY-MM-DDTHH:mm:ssZ)
+- `fecha_hora_fin`: Opcional, formato ISO 8601, debe ser posterior a fecha_hora_inicio
+- `descripcion`: Opcional, texto
+
+**Restricciones:**
+- ❌ No se pueden agregar escenas a expedientes en estado `APROBADO`
+
+#### ✏️ Actualizar escena (TECNICO_DICRI, COORDINADOR_DICRI, ADMIN)
+```http
+PUT /api/escenas/:id
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "nombre_escena": "Escena Principal - Sala Actualizada",
+  "direccion_escena": "Dirección actualizada",
+  "fecha_hora_fin": "2025-11-20T16:00:00Z",
+  "descripcion": "Descripción actualizada de la escena"
+}
+```
+
+**Restricciones:**
+- ❌ No se pueden modificar escenas de expedientes en estado `APROBADO`
+
+#### ❌ Eliminar escena (TECNICO_DICRI, COORDINADOR_DICRI, ADMIN)
+```http
+DELETE /api/escenas/:id
+Authorization: Bearer <token>
+```
+
+**Restricciones:**
+- ❌ No se pueden eliminar escenas de expedientes en estado `APROBADO`
+- **Nota:** Eliminación lógica (desactiva el registro)
+
+---
+
+### 📊 Reportes y Estadísticas (`/api/reportes`)
+
+**⚠️ Todas las rutas requieren autenticación**
+
+#### 📈 Estadísticas generales (Todos los roles)
+```http
+GET /api/reportes/estadisticas-generales
+Authorization: Bearer <token>
+```
+
+**Respuesta (200):**
+```json
+{
+  "success": true,
+  "message": "Estadísticas generales obtenidas exitosamente",
+  "data": {
+    "total_expedientes": 10,
+    "expedientes_activos": 8,
+    "expedientes_por_estado": {
+      "EN_REGISTRO": 3,
+      "PENDIENTE_REVISION": 2,
+      "APROBADO": 2,
+      "RECHAZADO": 1
+    },
+    "total_indicios": 25,
+    "indicios_por_tipo": {
+      "Arma de Fuego": 5,
+      "Evidencia Digital": 8,
+      "Documentos": 12
+    },
+    "expedientes_por_fiscalia": {
+      "Fiscalía de Delitos contra la Vida": 4,
+      "Fiscalía de Delitos Económicos": 3,
+      "Fiscalía de Delitos Informáticos": 3
+    }
+  }
+}
+```
+
+**Acceso:** Disponible para todos los roles autenticados (TECNICO_DICRI, COORDINADOR_DICRI, ADMIN)
+
+#### 📋 Reporte de revisión de expedientes (COORDINADOR_DICRI, ADMIN)
+```http
+GET /api/reportes/revision-expedientes
+Authorization: Bearer <token>
+```
+
+**Parámetros de consulta opcionales:**
+- `fecha_inicio` (string): Fecha de inicio del período (YYYY-MM-DD)
+- `fecha_fin` (string): Fecha de fin del período (YYYY-MM-DD)
+- `estado_revision` (string): EN_REGISTRO | PENDIENTE_REVISION | APROBADO | RECHAZADO
+
+**Ejemplo con filtros:**
+```http
+GET /api/reportes/revision-expedientes?fecha_inicio=2025-01-01&fecha_fin=2025-12-31&estado_revision=APROBADO
+Authorization: Bearer <token>
+```
+
+**Respuesta (200):**
+```json
+{
+  "success": true,
+  "message": "Reporte de revisión de expedientes obtenido exitosamente",
+  "data": [
+    {
+      "codigo_caso": "MP001-2025-1001",
+      "nombre_caso": "Homicidio en Zona 10",
+      "nombre_fiscalia": "Fiscalía de Delitos contra la Vida",
+      "fecha_registro": "2025-11-20T10:30:00.000Z",
+      "tecnico_registra": "Juan Pérez",
+      "estado_actual": "APROBADO",
+      "fecha_revision": "2025-11-21T15:00:00.000Z",
+      "coordinador_revision": "María López",
+      "justificacion_revision": "Aprobado sin observaciones."
+    }
+  ]
+}
+```
+
+**Acceso:** Solo COORDINADOR_DICRI y ADMIN
+
+---
+
 ### 🏷️ Tipos de Indicio (`/api/tipos-indicio`)
 
 **⚠️ Todas las rutas requieren autenticación**
@@ -702,6 +893,8 @@ EN_REGISTRO → (Enviar a revisión) → PENDIENTE_REVISION
                                          Aprobar → APROBADO
                                             ↓
                                         Rechazar → RECHAZADO → (Corregir y reenviar) → PENDIENTE_REVISION
+
+ELIMINADO ← (Eliminar expediente) ← Cualquier estado (excepto APROBADO recomendado)
 ```
 
 ### Estados disponibles:
@@ -709,6 +902,7 @@ EN_REGISTRO → (Enviar a revisión) → PENDIENTE_REVISION
 - **PENDIENTE_REVISION**: Expediente listo para revisión del coordinador
 - **APROBADO**: Expediente revisado y validado
 - **RECHAZADO**: Expediente requiere correcciones
+- **ELIMINADO**: Expediente eliminado lógicamente (activo=0)
 
 ---
 
@@ -1010,8 +1204,10 @@ TÉCNICO DICRI
    ✅ Crear indicios y escenas
    ✅ Actualizar expedientes EN_REGISTRO o RECHAZADO
    ✅ Enviar expedientes a revisión
+   ✅ Eliminar expedientes (cambia a estado ELIMINADO)
+   ✅ Ver estadísticas generales
    ❌ Aprobar/Rechazar expedientes
-   ❌ Ver reportes
+   ❌ Ver reportes de revisión
 
 COORDINADOR DICRI
 ├─ Módulos: Dashboard, Revisión de Expedientes, Informes y Estadísticas
@@ -1021,6 +1217,7 @@ COORDINADOR DICRI
    ✅ Aprobar expedientes
    ✅ Rechazar expedientes (con justificación)
    ✅ Ver reportes y estadísticas
+   ✅ Eliminar expedientes (cambia a estado ELIMINADO)
    ❌ Crear/modificar expedientes
    ❌ Crear indicios
 ```
