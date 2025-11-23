@@ -2,6 +2,34 @@
 
 Backend desarrollado con Express.js, TypeScript y SQL Server 2022 - Prueba Técnica por José Fernando Rosales Escobar.
 
+## 📑 Tabla de Contenido
+
+- [Características](#características)
+- [Estructura del Proyecto](#estructura-del-proyecto)
+- [Instalación](#instalación)
+- [Uso](#uso)
+- [API Endpoints](#api-endpoints)
+  - [Autenticación](#autenticación-api-auth)
+  - [Usuarios](#usuarios-api-users)
+  - [Expedientes DICRI](#expedientes-dicri-api-expedientes)
+  - [Indicios](#indicios-api-indicios-y-apiexpedientesidindicios)
+  - [Fiscalías](#fiscalías-api-fiscalias)
+  - [Escenas](#escenas-api-escenas-y-apiexpedientesidescenas)
+  - [Reportes y Estadísticas](#reportes-y-estadísticas-api-reportes)
+  - [Tipos de Indicio](#tipos-de-indicio-api-tipos-indicio)
+- [Flujo de Estados de Expedientes](#flujo-de-estados-de-expedientes)
+- [Health Check](#health-check)
+- [Base de Datos](#base-de-datos)
+- [Gestión de Usuarios y Roles](#gestión-de-usuarios-y-roles)
+- [Seguridad](#seguridad)
+- [Variables de Entorno Importantes](#variables-de-entorno-importantes)
+- [Testing](#testing)
+- [Scripts Disponibles](#scripts-disponibles)
+- [Debugging](#debugging)
+- [Contribución](#contribución)
+- [Licencia](#licencia)
+- [Autor](#autor)
+
 ## 🚀 Características
 
 - ✅ Arquitectura limpia (Clean Architecture)
