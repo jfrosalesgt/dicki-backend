@@ -1245,6 +1245,88 @@ COORDINADOR DICRI
 | `JWT_SECRET` | Secreto para JWT | (cambiar en producción) |
 | `JWT_EXPIRES_IN` | Duración del token | 8h |
 
+## 🧪 Testing
+
+### Ejecutar Pruebas
+
+El proyecto incluye pruebas unitarias completas para los servicios principales.
+
+```powershell
+# Ejecutar todas las pruebas
+npm test
+
+# Ejecutar pruebas en modo watch (útil durante desarrollo)
+npm run test:watch
+
+# Generar reporte de cobertura
+npm run test:coverage
+
+# Ejecutar pruebas con salida detallada
+npm run test:verbose
+```
+
+### Estructura de Pruebas
+
+```
+src/__tests__/
+├── simple.test.ts                    # 1 test case
+└── services/
+  ├── AuthService.test.ts           # 8 test cases
+  ├── UserService.test.ts           # 8 test cases
+  ├── InvestigacionService.test.ts  # 11 test cases
+  ├── EscenaService.test.ts         # 10 test cases
+  └── FiscaliaService.test.ts       # 9 test cases
+```
+
+**Total:** 47 test cases cubriendo:
+- ✅ Autenticación y cambio de contraseñas
+- ✅ CRUD de usuarios con validaciones
+- ✅ Flujo completo DICRI (estados de expedientes)
+- ✅ Gestión de escenas con restricciones por estado
+- ✅ CRUD de fiscalías
+
+### Ejemplo de Salida
+
+```
+PASS  src/__tests__/services/AuthService.test.ts
+PASS  src/__tests__/services/UserService.test.ts
+PASS  src/__tests__/services/InvestigacionService.test.ts
+PASS  src/__tests__/services/EscenaService.test.ts
+PASS  src/__tests__/services/FiscaliaService.test.ts
+PASS  src/__tests__/simple.test.ts
+
+Test Suites: 6 passed, 6 total
+Tests:       47 passed, 47 total
+Snapshots:   0 total
+```
+
+### Reporte de Cobertura
+
+Con `npm run test:coverage`, obtendrás un reporte detallado:
+
+> Nota: El ejemplo anterior se ha actualizado; la ejecución actual muestra alta cobertura en la capa de servicios pero baja en controladores, repositorios y middleware. Prioridad futura: añadir pruebas unitarias/integración para rutas y controladores.
+
+### Estado Actual de Cobertura (Nov 2025)
+
+Resumen de la última ejecución (`npm run test:coverage`):
+
+- Capa de servicios: Cobertura alta (≈90%+ en statements y lines).
+- Capas con cobertura baja (0%): controladores, rutas, middleware, repositorios concretos.
+- Enfoque recomendado:
+  1. Agregar pruebas de controladores simulando peticiones con `supertest`.
+  2. Mockear `mssql` para probar repositorios sin tocar la base real.
+  3. Añadir escenarios de error (validaciones, auth, roles) para middleware.
+  4. Integrar pruebas de flujo completo (login → crear expediente → enviar a revisión → aprobar/rechazar).
+
+Para visualizar el detalle HTML:
+```
+coverage/lcov-report/index.html
+```
+
+El reporte HTML se genera en `coverage/lcov-report/index.html`
+
+---
+
 ## 📝 Scripts Disponibles
 
 ```json
@@ -1253,17 +1335,28 @@ COORDINADOR DICRI
   "docker:dev": "nodemon --exec 'node --inspect=0.0.0.0:9229 -r ts-node/register' src/server.ts",
   "build": "tsc",
   "start": "node dist/server.js",
-  "test": "jest"
+  "test": "jest",
+  "test:watch": "jest --watch",
+  "test:coverage": "jest --coverage",
+  "test:verbose": "jest --verbose"
 }
 ```
 
 ### Descripción de scripts:
 
+#### Desarrollo
 - **`npm run dev`**: Desarrollo local con Hot Reload (requiere configuración local)
 - **`npm run docker:dev`**: Desarrollo en Docker con Hot Reload y Debugging
+
+#### Producción
 - **`npm run build`**: Compila TypeScript a JavaScript en la carpeta `dist/`
 - **`npm start`**: Ejecuta la aplicación compilada en producción
-- **`npm test`**: Ejecuta las pruebas con Jest
+
+#### Testing
+- **`npm test`**: Ejecuta todas las pruebas unitarias
+- **`npm run test:watch`**: Ejecuta pruebas en modo watch (re-ejecuta al cambiar archivos)
+- **`npm run test:coverage`**: Genera reporte de cobertura de código
+- **`npm run test:verbose`**: Ejecuta pruebas con salida detallada de cada test
 
 ### 🐛 Debugging
 
