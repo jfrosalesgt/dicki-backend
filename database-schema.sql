@@ -587,39 +587,44 @@ BEGIN
     DECLARE @id_usuario_coordinador INT;
     DECLARE @id_tipo_arma INT;
 
-    -- 4.1 Roles de Seguridad y Perfiles base
-    INSERT INTO [dbo].[Perfil] ([nombre_perfil], [descripcion], [usuario_creacion]) VALUES 
-        ('Administrador', 'Perfil con acceso total al sistema', @SYSTEM),
-        ('Operativo DICRI', 'Perfil para técnicos y coordinadores DICRI', @SYSTEM);
+    -- 4.1 Roles de Seguridad y Perfiles base
+    INSERT INTO [dbo].[Perfil] ([nombre_perfil], [descripcion], [usuario_creacion]) VALUES 
+        ('Administrador', 'Perfil con acceso total al sistema', @SYSTEM),
+        ('Técnico DICRI', 'Perfil para técnicos que registran expedientes e indicios', @SYSTEM),
+        ('Coordinador DICRI', 'Perfil para coordinadores que revisan y aprueban expedientes', @SYSTEM);
 
-    INSERT INTO [dbo].[Role] ([nombre_role], [descripcion], [usuario_creacion]) VALUES 
-        ('ADMIN', 'Role de administrador del sistema', @SYSTEM),
-        ('TECNICO_DICRI', 'Rol para técnicos que registran indicios y envían a revisión.', @SYSTEM),
-        ('COORDINADOR_DICRI', 'Rol para coordinadores que aprueban o rechazan expedientes.', @SYSTEM);
+    INSERT INTO [dbo].[Role] ([nombre_role], [descripcion], [usuario_creacion]) VALUES 
+        ('ADMIN', 'Role de administrador del sistema', @SYSTEM),
+        ('TECNICO_DICRI', 'Rol para técnicos que registran indicios y envían a revisión.', @SYSTEM),
+        ('COORDINADOR_DICRI', 'Rol para coordinadores que aprueban o rechazan expedientes.', @SYSTEM);
 
-    -- 4.2 Usuarios de Ejemplo
-    INSERT INTO [dbo].[Usuario] ([nombre_usuario], [clave], [nombre], [apellido], [email], [activo], [cambiar_clave], [intentos_fallidos], [usuario_creacion]) VALUES 
-        ('admin', @ClaveHash, 'Administrador', 'Sistema', 'admin@dicri.com', 1, 1, 0, @SYSTEM), 
-        ('tec_1', @ClaveHash, 'Juan', 'Perez', 'juan.perez@dicri.com', 1, 0, 0, @SYSTEM), 
-        ('coor_1', @ClaveHash, 'Maria', 'Lopez', 'maria.lopez@dicri.com', 1, 0, 0, @SYSTEM);
+    -- 4.2 Usuarios de Ejemplo
+    INSERT INTO [dbo].[Usuario] ([nombre_usuario], [clave], [nombre], [apellido], [email], [activo], [cambiar_clave], [intentos_fallidos], [usuario_creacion]) VALUES 
+        ('admin', @ClaveHash, 'Administrador', 'Sistema', 'admin@dicri.com', 1, 1, 0, @SYSTEM), 
+        ('tec_1', @ClaveHash, 'Juan', 'Perez', 'juan.perez@dicri.com', 1, 0, 0, @SYSTEM), 
+        ('coor_1', @ClaveHash, 'Maria', 'Lopez', 'maria.lopez@dicri.com', 1, 0, 0, @SYSTEM);
 
-    -- Asignación de IDs de usuario
-    SELECT @id_usuario_tecnico = id_usuario FROM Usuario WHERE nombre_usuario = 'tec_1';
-    SELECT @id_usuario_coordinador = id_usuario FROM Usuario WHERE nombre_usuario = 'coor_1';
+    -- Asignación de IDs de usuario
+    SELECT @id_usuario_tecnico = id_usuario FROM Usuario WHERE nombre_usuario = 'tec_1';
+    SELECT @id_usuario_coordinador = id_usuario FROM Usuario WHERE nombre_usuario = 'coor_1';
 
-    -- 4.3 Asignación Perfil - Usuario (Asumimos IDs de perfil 1 y 2)
-    INSERT INTO [dbo].[Usuario_Perfil] ([id_usuario], [id_perfil], [usuario_creacion]) VALUES 
-        (1, 1, @SYSTEM), 
-        (@id_usuario_tecnico, 2, @SYSTEM), 
-        (@id_usuario_coordinador, 2, @SYSTEM);
+    -- 4.3 Asignación Perfil - Usuario
+    -- admin = Perfil Administrador (id_perfil = 1)
+    -- tec_1 = Perfil Técnico DICRI (id_perfil = 2)
+    -- coor_1 = Perfil Coordinador DICRI (id_perfil = 3)
+    INSERT INTO [dbo].[Usuario_Perfil] ([id_usuario], [id_perfil], [usuario_creacion]) VALUES 
+        (1, 1, @SYSTEM), 
+        (@id_usuario_tecnico, 2, @SYSTEM), 
+        (@id_usuario_coordinador, 3, @SYSTEM);
 
-    -- 4.4 Asignación Role - Perfil (Asumimos IDs de role 1, 2, 3)
-    INSERT INTO [dbo].[Perfil_Role] ([id_perfil], [id_role], [usuario_creacion]) VALUES 
-        (1, 1, @SYSTEM), 
-        (2, 2, @SYSTEM), 
-        (2, 3, @SYSTEM);
-
-    -- 4.5 Creación de Módulos (Simplificado)
+    -- 4.4 Asignación Role - Perfil
+    -- Perfil 1 (Administrador) -> Role ADMIN
+    -- Perfil 2 (Técnico DICRI) -> Role TECNICO_DICRI
+    -- Perfil 3 (Coordinador DICRI) -> Role COORDINADOR_DICRI
+    INSERT INTO [dbo].[Perfil_Role] ([id_perfil], [id_role], [usuario_creacion]) VALUES 
+        (1, 1, @SYSTEM), 
+        (2, 2, @SYSTEM), 
+        (3, 3, @SYSTEM);    -- 4.5 Creación de Módulos (Simplificado)
     INSERT INTO [dbo].[Modulo] ([nombre_modulo], [descripcion], [ruta], [icono], [orden], [usuario_creacion]) VALUES 
         ('Dashboard', 'Vista principal del sistema', '/dashboard', 'home', 1, @SYSTEM),                   
         ('Gestión de Expedientes', 'Registro de investigaciones, escenas e indicios.', '/expedientes', 'folder', 10, @SYSTEM), 
@@ -627,21 +632,26 @@ BEGIN
         ('Informes y Estadísticas', 'Generación de reportes.', '/reportes', 'bar-chart', 20, @SYSTEM), 
         ('Administración', 'Gestión de usuarios, roles y catálogos.', '/admin', 'settings', 90, @SYSTEM); 
     
-    -- 4.6 Asignación Perfil-Módulo (AGREGAR DESPUÉS DE LA LÍNEA 625)
--- Administrador tiene acceso a todos los módulos
+    -- 4.6 Asignación Perfil-Módulo
+-- Administrador (Perfil 1) tiene acceso a todos los módulos
 INSERT INTO [dbo].[Perfil_Modulo] ([id_perfil], [id_modulo], [usuario_creacion])
 SELECT 1, id_modulo, @SYSTEM
 FROM Modulo
 WHERE activo = 1;
 
--- Operativo DICRI tiene acceso a Dashboard, Gestión y Revisión de Expedientes, Informes
+-- Técnico DICRI (Perfil 2) tiene acceso a Dashboard, Gestión de Expedientes
 INSERT INTO [dbo].[Perfil_Modulo] ([id_perfil], [id_modulo], [usuario_creacion])
 SELECT 2, id_modulo, @SYSTEM
 FROM Modulo
-WHERE nombre_modulo IN ('Dashboard', 'Gestión de Expedientes', 'Revisión de Expedientes', 'Informes y Estadísticas')
+WHERE nombre_modulo IN ('Dashboard', 'Gestión de Expedientes')
 AND activo = 1;
 
-    -- 4.7 (Se omite la inserción de Role_Modulo por concisión, si se desea, se puede incluir el código de la versión 4.0)
+-- Coordinador DICRI (Perfil 3) tiene acceso a Dashboard, Revisión de Expedientes, Informes y Estadísticas
+INSERT INTO [dbo].[Perfil_Modulo] ([id_perfil], [id_modulo], [usuario_creacion])
+SELECT 3, id_modulo, @SYSTEM
+FROM Modulo
+WHERE nombre_modulo IN ('Dashboard', 'Revisión de Expedientes', 'Informes y Estadísticas')
+AND activo = 1;    -- 4.7 (Se omite la inserción de Role_Modulo por concisión, si se desea, se puede incluir el código de la versión 4.0)
     
     -- 4.8 Catálogos y Ejemplos de Negocio
     INSERT INTO [dbo].[EstadoRevisionDICRI] (nombre_estado, descripcion, usuario_creacion) VALUES 

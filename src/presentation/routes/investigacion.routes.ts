@@ -201,7 +201,7 @@ investigacionController.updateInvestigacion
  */
 router.delete(
   '/:id',
-  checkRole('COORDINADOR_DICRI', 'ADMIN'),
+  checkRole('TECNICO_DICRI', 'COORDINADOR_DICRI', 'ADMIN'),
   investigacionController.deleteInvestigacion
 );
 

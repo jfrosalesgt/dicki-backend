@@ -1,0 +1,262 @@
+═══════════════════════════════════════════════════════════════════════════════
+  CONFIGURACIÓN DE USUARIOS, ROLES Y PERFILES - SISTEMA DICRI
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ CORRECCIÓN APLICADA EXITOSAMENTE
+La base de datos ahora tiene la configuración correcta para el flujo de revisión.
+
+───────────────────────────────────────────────────────────────────────────────
+📋 RESUMEN DE LA CONFIGURACIÓN
+───────────────────────────────────────────────────────────────────────────────
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. PERFILES (3 perfiles separados)                                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  Perfil ID | Nombre              | Descripción
+  ──────────┼─────────────────────┼─────────────────────────────────────────
+  1         | Administrador       | Perfil con acceso total al sistema
+  2         | Técnico DICRI       | Perfil para técnicos que registran 
+            |                     | expedientes e indicios
+  3         | Coordinador DICRI   | Perfil para coordinadores que revisan 
+            |                     | y aprueban expedientes
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 2. ROLES (3 roles)                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  Role ID | Nombre              | Descripción
+  ────────┼─────────────────────┼─────────────────────────────────────────
+  1       | ADMIN               | Role de administrador del sistema
+  2       | TECNICO_DICRI       | Rol para técnicos que registran indicios
+          |                     | y envían a revisión
+  3       | COORDINADOR_DICRI   | Rol para coordinadores que aprueban o
+          |                     | rechazan expedientes
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 3. USUARIOS (3 usuarios de ejemplo)                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  Usuario  | Clave          | Nombre Completo      | Perfil            | Rol
+  ─────────┼────────────────┼──────────────────────┼───────────────────┼──────
+  admin    | admin123       | Administrador Sistema| Administrador     | ADMIN
+  tec_1    | tecnico123     | Juan Perez           | Técnico DICRI     | TECNICO_DICRI
+  coor_1   | coordinador123 | Maria Lopez          | Coordinador DICRI | COORDINADOR_DICRI
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 4. ASIGNACIÓN PERFIL → ROL (Uno a uno)                                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  Perfil                  → Rol
+  ────────────────────────┼─────────────────────
+  Administrador          → ADMIN
+  Técnico DICRI          → TECNICO_DICRI
+  Coordinador DICRI      → COORDINADOR_DICRI
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 5. MÓDULOS DISPONIBLES (5 módulos)                                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  Módulo                      | Ruta          | Descripción
+  ────────────────────────────┼───────────────┼─────────────────────────
+  Dashboard                   | /dashboard    | Vista principal del sistema
+  Gestión de Expedientes      | /expedientes  | Registro de investigaciones,
+                              |               | escenas e indicios
+  Revisión de Expedientes     | /revision     | Aprobar o rechazar expedientes
+  Informes y Estadísticas     | /reportes     | Generación de reportes
+  Administración              | /admin        | Gestión de usuarios, roles
+                              |               | y catálogos
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 6. ASIGNACIÓN PERFIL → MÓDULOS                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  ADMINISTRADOR (Acceso completo):
+    ✅ Dashboard
+    ✅ Gestión de Expedientes
+    ✅ Revisión de Expedientes
+    ✅ Informes y Estadísticas
+    ✅ Administración
+
+  TÉCNICO DICRI (Solo registro):
+    ✅ Dashboard
+    ✅ Gestión de Expedientes
+    ❌ Revisión de Expedientes
+    ❌ Informes y Estadísticas
+    ❌ Administración
+
+  COORDINADOR DICRI (Solo revisión y reportes):
+    ✅ Dashboard
+    ❌ Gestión de Expedientes
+    ✅ Revisión de Expedientes
+    ✅ Informes y Estadísticas
+    ❌ Administración
+
+
+───────────────────────────────────────────────────────────────────────────────
+🔐 PERMISOS POR ROL EN EL FLUJO DE REVISIÓN
+───────────────────────────────────────────────────────────────────────────────
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ TÉCNICO DICRI (tec_1)                                                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  PUEDE:
+    ✅ Crear expedientes (POST /api/expedientes)
+    ✅ Actualizar expedientes en estado EN_REGISTRO o RECHAZADO
+    ✅ Crear escenas (POST /api/expedientes/:id/escenas)
+    ✅ Crear indicios (POST /api/expedientes/:id/indicios)
+    ✅ Actualizar indicios (PUT /api/indicios/:id)
+    ✅ Enviar expedientes a revisión (POST /api/expedientes/:id/enviar-revision)
+    ✅ Ver todos los expedientes (GET /api/expedientes)
+    
+  NO PUEDE:
+    ❌ Aprobar expedientes (POST /api/expedientes/:id/aprobar)
+    ❌ Rechazar expedientes (POST /api/expedientes/:id/rechazar)
+    ❌ Modificar expedientes APROBADOS
+    ❌ Ver reportes (GET /api/reportes/*)
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ COORDINADOR DICRI (coor_1)                                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  PUEDE:
+    ✅ Ver todos los expedientes (GET /api/expedientes)
+    ✅ Ver expedientes en PENDIENTE_REVISION
+    ✅ Aprobar expedientes (POST /api/expedientes/:id/aprobar)
+    ✅ Rechazar expedientes con justificación (POST /api/expedientes/:id/rechazar)
+    ✅ Ver reportes (GET /api/reportes/revision-expedientes)
+    ✅ Ver estadísticas (GET /api/reportes/estadisticas-generales)
+    
+  NO PUEDE:
+    ❌ Crear expedientes
+    ❌ Crear indicios
+    ❌ Actualizar indicios
+    ❌ Enviar expedientes a revisión (es función de técnicos)
+    ❌ Modificar expedientes APROBADOS
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ADMINISTRADOR (admin)                                                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  PUEDE:
+    ✅ TODO lo anterior (técnicos + coordinadores)
+    ✅ Gestionar usuarios (POST /api/users, PUT /api/users/:id)
+    ✅ Gestionar fiscalías (POST /api/fiscalias)
+    ✅ Gestionar tipos de indicios (POST /api/tipos-indicio)
+    ✅ Acceder a todos los módulos del sistema
+
+
+───────────────────────────────────────────────────────────────────────────────
+🔄 FLUJO COMPLETO DE REVISIÓN CON ROLES
+───────────────────────────────────────────────────────────────────────────────
+
+  1. TÉCNICO (tec_1) registra expediente
+     └─> Estado: EN_REGISTRO
+     └─> POST /api/expedientes + POST /api/expedientes/:id/indicios
+
+  2. TÉCNICO (tec_1) envía a revisión cuando termina
+     └─> POST /api/expedientes/:id/enviar-revision
+     └─> Estado: EN_REGISTRO → PENDIENTE_REVISION
+
+  3a. COORDINADOR (coor_1) APRUEBA
+      └─> POST /api/expedientes/:id/aprobar
+      └─> Estado: PENDIENTE_REVISION → APROBADO
+      └─> ✅ Expediente bloqueado para modificaciones
+
+  3b. COORDINADOR (coor_1) RECHAZA (con justificación)
+      └─> POST /api/expedientes/:id/rechazar
+      └─> Body: { "justificacion": "..." }
+      └─> Estado: PENDIENTE_REVISION → RECHAZADO
+
+  4. Si fue rechazado, TÉCNICO (tec_1) corrige y reenvía
+     └─> PUT /api/expedientes/:id (corregir datos)
+     └─> POST /api/expedientes/:id/enviar-revision
+     └─> Estado: RECHAZADO → PENDIENTE_REVISION
+
+
+───────────────────────────────────────────────────────────────────────────────
+✅ VERIFICACIÓN DE CUMPLIMIENTO CON REQUERIMIENTOS
+───────────────────────────────────────────────────────────────────────────────
+
+  ✅ Técnicos pueden registrar expedientes e indicios
+  ✅ Técnicos pueden enviar expedientes a revisión
+  ✅ Coordinadores pueden aprobar expedientes
+  ✅ Coordinadores pueden rechazar expedientes
+  ✅ Rechazo requiere justificación obligatoria
+  ✅ Expedientes aprobados quedan bloqueados
+  ✅ Expedientes rechazados pueden ser corregidos y reenviados
+  ✅ Solo coordinadores tienen acceso a reportes
+  ✅ Separación clara de roles y responsabilidades
+
+
+───────────────────────────────────────────────────────────────────────────────
+📝 NOTAS IMPORTANTES
+───────────────────────────────────────────────────────────────────────────────
+
+1. ⚠️  SEPARACIÓN DE ROLES:
+   La configuración anterior tenía un perfil único "Operativo DICRI" con AMBOS
+   roles (TECNICO_DICRI y COORDINADOR_DICRI), lo que permitía a cualquier
+   usuario hacer TODO.
+   
+   AHORA está corregido: cada usuario tiene UN SOLO rol específico.
+
+2. 🔒 SEGURIDAD:
+   Los middlewares checkRole() en las rutas validan que el usuario tenga el
+   rol correcto antes de permitir la operación.
+
+3. 🎯 TESTING:
+   Para probar el flujo completo, usa:
+   - Login con tec_1 → Crear y enviar expediente
+   - Login con coor_1 → Aprobar o rechazar
+   - Login con tec_1 → Corregir y reenviar (si fue rechazado)
+
+4. 📊 REPORTES:
+   Solo COORDINADOR_DICRI y ADMIN pueden acceder a:
+   - GET /api/reportes/revision-expedientes
+   - GET /api/reportes/estadisticas-generales
+
+5. 🔄 TRANSICIONES DE ESTADO:
+   Las transiciones de estado están validadas en los Stored Procedures:
+   - sp_Investigacion_SendToReview
+   - sp_Investigacion_Approve
+   - sp_Investigacion_Reject
+
+
+───────────────────────────────────────────────────────────────────────────────
+🔧 COMANDOS ÚTILES PARA VERIFICAR
+───────────────────────────────────────────────────────────────────────────────
+
+Ver usuarios y sus roles:
+  SELECT u.nombre_usuario, p.nombre_perfil, r.nombre_role
+  FROM Usuario u
+  JOIN Usuario_Perfil up ON u.id_usuario = up.id_usuario
+  JOIN Perfil p ON up.id_perfil = p.id_perfil
+  JOIN Perfil_Role pr ON p.id_perfil = pr.id_perfil
+  JOIN Role r ON pr.id_role = r.id_role;
+
+Ver módulos por perfil:
+  SELECT p.nombre_perfil, m.nombre_modulo, m.ruta
+  FROM Perfil p
+  JOIN Perfil_Modulo pm ON p.id_perfil = pm.id_perfil
+  JOIN Modulo m ON pm.id_modulo = m.id_modulo
+  ORDER BY p.nombre_perfil, m.orden;
+
+Ver expedientes y sus estados:
+  SELECT codigo_caso, nombre_caso, estado_revision_dicri, 
+         fecha_revision, justificacion_revision
+  FROM Investigacion
+  WHERE activo = 1
+  ORDER BY fecha_creacion DESC;
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  FIN DEL DOCUMENTO - Sistema configurado correctamente ✅
+═══════════════════════════════════════════════════════════════════════════════

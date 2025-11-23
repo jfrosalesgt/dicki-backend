@@ -749,11 +749,283 @@ Todas las tablas incluyen:
 
 ### Usuario por defecto
 
-- **Usuario**: `admin`
-- **Contraseña**: `admin123`
-- **Email**: `admin@dicri.com`
+El sistema incluye 3 usuarios de ejemplo con roles diferentes:
 
-⚠️ **Importante**: Cambia la contraseña del usuario admin después del primer login.
+| Usuario | Contraseña | Rol | Descripción |
+|---------|-----------|-----|-------------|
+| `admin` | `admin123` | ADMIN | Administrador con acceso completo |
+| `tec_1` | `tecnico123` | TECNICO_DICRI | Técnico que registra expedientes e indicios |
+| `coor_1` | `coordinador123` | COORDINADOR_DICRI | Coordinador que aprueba/rechaza expedientes |
+
+⚠️ **Importante**: Cambia las contraseñas de los usuarios después del primer login en producción.
+
+---
+
+## 👥 Gestión de Usuarios y Roles
+
+### Crear un nuevo usuario y asignar roles
+
+#### 1️⃣ Crear un usuario Técnico
+
+```sql
+-- Conectarse a SQL Server
+USE [dicri-indicios];
+GO
+
+-- Variables
+DECLARE @ClaveHash NVARCHAR(255) = '0192023a7bbd73250516f069df18b500'; -- Hash MD5 de 'admin123'
+DECLARE @id_usuario INT;
+DECLARE @id_perfil_tecnico INT;
+
+-- 1. Crear el usuario
+INSERT INTO Usuario (nombre_usuario, clave, nombre, apellido, email, activo, cambiar_clave, intentos_fallidos, usuario_creacion)
+VALUES ('tec_2', @ClaveHash, 'Carlos', 'Mendez', 'carlos.mendez@dicri.com', 1, 1, 0, 'admin');
+
+-- Obtener ID del usuario creado
+SET @id_usuario = SCOPE_IDENTITY();
+
+-- 2. Obtener ID del perfil Técnico DICRI
+SELECT @id_perfil_tecnico = id_perfil 
+FROM Perfil 
+WHERE nombre_perfil = 'Técnico DICRI';
+
+-- 3. Asignar perfil al usuario
+INSERT INTO Usuario_Perfil (id_usuario, id_perfil, usuario_creacion)
+VALUES (@id_usuario, @id_perfil_tecnico, 'admin');
+
+-- Verificar
+SELECT 
+    u.nombre_usuario,
+    u.nombre + ' ' + u.apellido AS nombre_completo,
+    p.nombre_perfil,
+    r.nombre_role
+FROM Usuario u
+INNER JOIN Usuario_Perfil up ON u.id_usuario = up.id_usuario
+INNER JOIN Perfil p ON up.id_perfil = p.id_perfil
+INNER JOIN Perfil_Role pr ON p.id_perfil = pr.id_perfil
+INNER JOIN Role r ON pr.id_role = r.id_role
+WHERE u.id_usuario = @id_usuario;
+GO
+```
+
+#### 2️⃣ Crear un usuario Coordinador
+
+```sql
+USE [dicri-indicios];
+GO
+
+DECLARE @ClaveHash NVARCHAR(255) = '0192023a7bbd73250516f069df18b500'; -- Hash MD5 de 'admin123'
+DECLARE @id_usuario INT;
+DECLARE @id_perfil_coordinador INT;
+
+-- 1. Crear el usuario
+INSERT INTO Usuario (nombre_usuario, clave, nombre, apellido, email, activo, cambiar_clave, intentos_fallidos, usuario_creacion)
+VALUES ('coor_2', @ClaveHash, 'Ana', 'Rodriguez', 'ana.rodriguez@dicri.com', 1, 1, 0, 'admin');
+
+SET @id_usuario = SCOPE_IDENTITY();
+
+-- 2. Obtener ID del perfil Coordinador DICRI
+SELECT @id_perfil_coordinador = id_perfil 
+FROM Perfil 
+WHERE nombre_perfil = 'Coordinador DICRI';
+
+-- 3. Asignar perfil al usuario
+INSERT INTO Usuario_Perfil (id_usuario, id_perfil, usuario_creacion)
+VALUES (@id_usuario, @id_perfil_coordinador, 'admin');
+
+-- Verificar
+SELECT 
+    u.nombre_usuario,
+    u.nombre + ' ' + u.apellido AS nombre_completo,
+    p.nombre_perfil,
+    r.nombre_role
+FROM Usuario u
+INNER JOIN Usuario_Perfil up ON u.id_usuario = up.id_usuario
+INNER JOIN Perfil p ON up.id_perfil = p.id_perfil
+INNER JOIN Perfil_Role pr ON p.id_perfil = pr.id_perfil
+INNER JOIN Role r ON pr.id_role = r.id_role
+WHERE u.id_usuario = @id_usuario;
+GO
+```
+
+#### 3️⃣ Crear un usuario Administrador
+
+```sql
+USE [dicri-indicios];
+GO
+
+DECLARE @ClaveHash NVARCHAR(255) = '0192023a7bbd73250516f069df18b500'; -- Hash MD5 de 'admin123'
+DECLARE @id_usuario INT;
+DECLARE @id_perfil_admin INT;
+
+-- 1. Crear el usuario
+INSERT INTO Usuario (nombre_usuario, clave, nombre, apellido, email, activo, cambiar_clave, intentos_fallidos, usuario_creacion)
+VALUES ('admin_2', @ClaveHash, 'Luis', 'Gonzalez', 'luis.gonzalez@dicri.com', 1, 1, 0, 'admin');
+
+SET @id_usuario = SCOPE_IDENTITY();
+
+-- 2. Obtener ID del perfil Administrador
+SELECT @id_perfil_admin = id_perfil 
+FROM Perfil 
+WHERE nombre_perfil = 'Administrador';
+
+-- 3. Asignar perfil al usuario
+INSERT INTO Usuario_Perfil (id_usuario, id_perfil, usuario_creacion)
+VALUES (@id_usuario, @id_perfil_admin, 'admin');
+
+-- Verificar
+SELECT 
+    u.nombre_usuario,
+    u.nombre + ' ' + u.apellido AS nombre_completo,
+    p.nombre_perfil,
+    r.nombre_role
+FROM Usuario u
+INNER JOIN Usuario_Perfil up ON u.id_usuario = up.id_usuario
+INNER JOIN Perfil p ON up.id_perfil = p.id_perfil
+INNER JOIN Perfil_Role pr ON p.id_perfil = pr.id_perfil
+INNER JOIN Role r ON pr.id_role = r.id_role
+WHERE u.id_usuario = @id_usuario;
+GO
+```
+
+### 🔐 Generar hash MD5 para contraseñas
+
+Para crear una contraseña personalizada, genera su hash MD5:
+
+**PowerShell:**
+```powershell
+# Generar hash MD5 de una contraseña
+$password = "MiPassword123"
+$md5 = [System.Security.Cryptography.MD5]::Create()
+$hash = [System.BitConverter]::ToString($md5.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($password))).Replace("-", "").ToLower()
+Write-Host "Hash MD5: $hash"
+```
+
+**Ejemplo de salida:**
+```
+Hash MD5: 0192023a7bbd73250516f069df18b500
+```
+
+Luego usa ese hash en la variable `@ClaveHash` del script SQL.
+
+### 📋 Consultas útiles para gestión de usuarios
+
+#### Ver todos los usuarios con sus roles
+
+```sql
+SELECT 
+    u.id_usuario,
+    u.nombre_usuario,
+    u.nombre + ' ' + u.apellido AS nombre_completo,
+    u.email,
+    u.activo,
+    p.nombre_perfil,
+    r.nombre_role,
+    u.fecha_ultimo_acceso
+FROM Usuario u
+LEFT JOIN Usuario_Perfil up ON u.id_usuario = up.id_usuario
+LEFT JOIN Perfil p ON up.id_perfil = p.id_perfil
+LEFT JOIN Perfil_Role pr ON p.id_perfil = pr.id_perfil
+LEFT JOIN Role r ON pr.id_role = r.id_role
+ORDER BY u.id_usuario;
+```
+
+#### Ver módulos disponibles por perfil
+
+```sql
+SELECT 
+    p.nombre_perfil,
+    m.nombre_modulo,
+    m.ruta,
+    m.orden
+FROM Perfil p
+INNER JOIN Perfil_Modulo pm ON p.id_perfil = pm.id_perfil
+INNER JOIN Modulo m ON pm.id_modulo = m.id_modulo
+WHERE p.activo = 1 AND m.activo = 1
+ORDER BY p.nombre_perfil, m.orden;
+```
+
+#### Cambiar el rol de un usuario existente
+
+```sql
+-- Ejemplo: Cambiar tec_1 de Técnico a Coordinador
+USE [dicri-indicios];
+GO
+
+DECLARE @id_usuario INT = (SELECT id_usuario FROM Usuario WHERE nombre_usuario = 'tec_1');
+DECLARE @id_perfil_coordinador INT = (SELECT id_perfil FROM Perfil WHERE nombre_perfil = 'Coordinador DICRI');
+
+-- Eliminar asignación actual
+DELETE FROM Usuario_Perfil WHERE id_usuario = @id_usuario;
+
+-- Asignar nuevo perfil
+INSERT INTO Usuario_Perfil (id_usuario, id_perfil, usuario_creacion)
+VALUES (@id_usuario, @id_perfil_coordinador, 'admin');
+
+-- Verificar cambio
+SELECT 
+    u.nombre_usuario,
+    p.nombre_perfil,
+    r.nombre_role
+FROM Usuario u
+INNER JOIN Usuario_Perfil up ON u.id_usuario = up.id_usuario
+INNER JOIN Perfil p ON up.id_perfil = p.id_perfil
+INNER JOIN Perfil_Role pr ON p.id_perfil = pr.id_perfil
+INNER JOIN Role r ON pr.id_role = r.id_role
+WHERE u.id_usuario = @id_usuario;
+GO
+```
+
+#### Desactivar/Activar un usuario
+
+```sql
+-- Desactivar usuario
+UPDATE Usuario 
+SET activo = 0, 
+    usuario_actualizacion = 'admin',
+    fecha_actualizacion = GETDATE()
+WHERE nombre_usuario = 'tec_2';
+
+-- Activar usuario
+UPDATE Usuario 
+SET activo = 1, 
+    usuario_actualizacion = 'admin',
+    fecha_actualizacion = GETDATE()
+WHERE nombre_usuario = 'tec_2';
+```
+
+### 🔄 Estructura de Roles y Permisos
+
+```
+ADMINISTRADOR
+├─ Módulos: Todos (Dashboard, Gestión, Revisión, Reportes, Administración)
+├─ Permisos: Acceso completo al sistema
+└─ Puede: Crear usuarios, gestionar catálogos, todo lo de técnicos y coordinadores
+
+TÉCNICO DICRI
+├─ Módulos: Dashboard, Gestión de Expedientes
+├─ Permisos: Registrar expedientes, indicios y escenas
+└─ Puede: 
+   ✅ Crear expedientes
+   ✅ Crear indicios y escenas
+   ✅ Actualizar expedientes EN_REGISTRO o RECHAZADO
+   ✅ Enviar expedientes a revisión
+   ❌ Aprobar/Rechazar expedientes
+   ❌ Ver reportes
+
+COORDINADOR DICRI
+├─ Módulos: Dashboard, Revisión de Expedientes, Informes y Estadísticas
+├─ Permisos: Revisar y aprobar/rechazar expedientes
+└─ Puede:
+   ✅ Ver todos los expedientes
+   ✅ Aprobar expedientes
+   ✅ Rechazar expedientes (con justificación)
+   ✅ Ver reportes y estadísticas
+   ❌ Crear/modificar expedientes
+   ❌ Crear indicios
+```
+
+---
 
 ## 🔒 Seguridad
 
