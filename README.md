@@ -1265,6 +1265,52 @@ npm run test:coverage
 npm run test:verbose
 ```
 
+### Ejecutar un archivo de prueba específico
+
+Para correr solo un archivo (por ejemplo `AuthService.test.ts`) usa la ruta relativa dentro de `src`:
+
+```powershell
+npx jest src/__tests__/services/AuthService.test.ts --verbose
+```
+
+En modo watch (re-ejecuta al guardar cambios):
+
+```powershell
+npx jest src/__tests__/services/AuthService.test.ts --watch
+```
+
+### Ejecutar un único test dentro de un archivo
+
+Utiliza la opción `-t` / `--testNamePattern` con el nombre (o parte del nombre) del `it()` / `test()`.
+
+Ejemplo: correr solo el caso de login exitoso del `AuthService`:
+
+```powershell
+npx jest src/__tests__/services/AuthService.test.ts -t "debería realizar login exitoso"
+```
+
+También puedes usar una expresión regular parcial:
+
+```powershell
+npx jest src/__tests__/services/AuthService.test.ts -t login
+```
+
+### Limpiar caché antes de reintentar (opcional)
+
+Si Jest conserva resultados obsoletos:
+
+```powershell
+npx jest --clearCache
+```
+
+### Otros flags útiles
+
+```text
+--runInBand          Ejecuta pruebas secuencialmente (útil para depurar)
+--detectOpenHandles  Ayuda a identificar handles abiertos que impiden terminar
+--maxWorkers=50%     Reduce concurrencia si hay problemas de memoria
+```
+
 ### Estructura de Pruebas
 
 ```
