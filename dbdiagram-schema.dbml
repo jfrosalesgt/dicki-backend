@@ -1,0 +1,429 @@
+Project dicri_indicios {
+  database_type: 'SQL Server'
+  Note: '''
+    Modelo de Base de Datos para el registro y control de indicios de la DICRI.
+    Prueba Técnica - José Fernando Rosales Escobar
+    Email: fernando.rosales.gt@gmail.com
+    Incluye módulo de Seguridad (Usuarios, Perfiles, Roles, Módulos) y Flujo de Revisión DICRI.
+  '''
+}
+
+// =============================================
+// MÓDULO DE SEGURIDAD Y PERMISOS
+// =============================================
+
+Table Usuario {
+  id_usuario int [pk, increment]
+  nombre_usuario nvarchar(50) [unique, not null, note: 'Username único del usuario']
+  clave nvarchar(255) [not null, note: 'Contraseña hasheada con MD5']
+  nombre nvarchar(100) [not null]
+  apellido nvarchar(100) [not null]
+  email nvarchar(100) [unique, not null]
+  activo bit [default: 1, note: 'Soft delete: 1=activo, 0=inactivo']
+  cambiar_clave bit [default: 0, note: 'Flag para forzar cambio de contraseña']
+  intentos_fallidos int [default: 0, note: 'Contador de intentos fallidos de login (máx 3)']
+  fecha_ultimo_acceso datetime [note: 'Timestamp del último login exitoso']
+  usuario_creacion nvarchar(50) [not null]
+  fecha_creacion datetime [not null, default: `GETDATE()`]
+  usuario_actualizacion nvarchar(50)
+  fecha_actualizacion datetime
+  
+  Note: 'Tabla principal de usuarios del sistema con autenticación JWT'
+  Indexes {
+    email [name: 'IX_Usuario_Email']
+    activo [name: 'IX_Usuario_Activo']
+  }
+}
+
+Table Perfil {
+  id_perfil int [pk, increment]
+  nombre_perfil nvarchar(100) [unique, not null, note: 'Ej: Técnico DICRI, Coordinador DICRI, Administrador']
+  descripcion nvarchar(255)
+  activo bit [default: 1]
+  usuario_creacion nvarchar(50) [not null]
+  fecha_creacion datetime [not null, default: `GETDATE()`]
+  usuario_actualizacion nvarchar(50)
+  fecha_actualizacion datetime
+  
+  Note: 'Agrupa permisos y roles por tipo de usuario'
+  Indexes {
+    activo [name: 'IX_Perfil_Activo']
+  }
+}
+
+Table Modulo {
+  id_modulo int [pk, increment]
+  nombre_modulo nvarchar(100) [not null, note: 'Nombre del módulo del sistema']
+  descripcion nvarchar(255)
+  ruta nvarchar(255) [note: 'URL del módulo (ej: /expedientes, /reportes)']
+  icono nvarchar(50) [note: 'Nombre del ícono para UI']
+  orden int [default: 0, note: 'Orden de visualización en menús']
+  id_modulo_padre int [note: 'FK para módulos jerárquicos (padre-hijo)']
+  activo bit [default: 1]
+  usuario_creacion nvarchar(50) [not null]
+  fecha_creacion datetime [not null, default: `GETDATE()`]
+  usuario_actualizacion nvarchar(50)
+  fecha_actualizacion datetime
+  
+  Note: 'Representa funcionalidades del sistema (menús y submódulos)'
+  Indexes {
+    activo [name: 'IX_Modulo_Activo']
+    id_modulo_padre [name: 'IX_Modulo_Padre']
+  }
+}
+
+Table Role {
+  id_role int [pk, increment]
+  nombre_role nvarchar(100) [unique, not null, note: 'Ej: ADMIN, COORDINADOR_DICRI, TECNICO_DICRI']
+  descripcion nvarchar(255)
+  activo bit [default: 1]
+  usuario_creacion nvarchar(50) [not null]
+  fecha_creacion datetime [not null, default: `GETDATE()`]
+  usuario_actualizacion nvarchar(50)
+  fecha_actualizacion datetime
+  
+  Note: 'Define roles funcionales del sistema para autorización en endpoints'
+  Indexes {
+    activo [name: 'IX_Role_Activo']
+  }
+}
+
+// Tablas de Relación (Muchos a Muchos)
+
+Table Usuario_Perfil {
+  id_usuario_perfil int [pk, increment]
+  id_usuario int [not null]
+  id_perfil int [not null]
+  fecha_inicio datetime [not null, default: `GETDATE()`]
+  fecha_fin datetime [note: 'NULL = vigente, con fecha = histórico']
+  activo bit [default: 1]
+  usuario_creacion nvarchar(50) [not null]
+  fecha_creacion datetime [not null, default: `GETDATE()`]
+  usuario_actualizacion nvarchar(50)
+  fecha_actualizacion datetime
+  
+  Note: 'Relación N:M entre Usuario y Perfil con vigencia temporal'
+  Indexes {
+    (id_usuario, id_perfil) [unique, name: 'UK_Usuario_Perfil']
+    id_usuario [name: 'IX_Usuario_Perfil_Usuario']
+    id_perfil [name: 'IX_Usuario_Perfil_Perfil']
+  }
+}
+
+Table Perfil_Modulo {
+  id_perfil_modulo int [pk, increment]
+  id_perfil int [not null]
+  id_modulo int [not null]
+  puede_leer bit [default: 1]
+  puede_crear bit [default: 0]
+  puede_editar bit [default: 0]
+  puede_eliminar bit [default: 0]
+  activo bit [default: 1]
+  usuario_creacion nvarchar(50) [not null]
+  fecha_creacion datetime [not null, default: `GETDATE()`]
+  usuario_actualizacion nvarchar(50)
+  fecha_actualizacion datetime
+  
+  Note: 'Define permisos CRUD por perfil y módulo'
+  Indexes {
+    (id_perfil, id_modulo) [unique, name: 'UK_Perfil_Modulo']
+    id_perfil [name: 'IX_Perfil_Modulo_Perfil']
+    id_modulo [name: 'IX_Perfil_Modulo_Modulo']
+  }
+}
+
+Table Role_Modulo {
+  id_role_modulo int [pk, increment]
+  id_role int [not null]
+  id_modulo int [not null]
+  puede_leer bit [default: 1]
+  puede_crear bit [default: 0]
+  puede_editar bit [default: 0]
+  puede_eliminar bit [default: 0]
+  activo bit [default: 1]
+  usuario_creacion nvarchar(50) [not null]
+  fecha_creacion datetime [not null, default: `GETDATE()`]
+  usuario_actualizacion nvarchar(50)
+  fecha_actualizacion datetime
+  
+  Note: 'Define permisos CRUD por role y módulo'
+  Indexes {
+    (id_role, id_modulo) [unique, name: 'UK_Role_Modulo']
+  }
+}
+
+Table Perfil_Role {
+  id_perfil_role int [pk, increment]
+  id_perfil int [not null]
+  id_role int [not null]
+  activo bit [default: 1]
+  usuario_creacion nvarchar(50) [not null]
+  fecha_creacion datetime [not null, default: `GETDATE()`]
+  usuario_actualizacion nvarchar(50)
+  fecha_actualizacion datetime
+  
+  Note: 'Relación N:M entre Perfil y Role'
+  Indexes {
+    (id_perfil, id_role) [unique, name: 'UK_Perfil_Role']
+  }
+}
+
+// =============================================
+// MÓDULO DE GESTIÓN DE INDICIOS (DICRI)
+// =============================================
+
+Table Fiscalia {
+  id_fiscalia int [pk, increment]
+  nombre_fiscalia nvarchar(150) [unique, not null, note: 'Ej: Fiscalía de Delitos contra la Vida']
+  direccion nvarchar(255) [note: 'Dirección física de la fiscalía']
+  telefono nvarchar(20) [note: 'Teléfono de contacto']
+  activo bit [default: 1]
+  usuario_creacion nvarchar(50) [not null]
+  fecha_creacion datetime [not null, default: `GETDATE()`]
+  usuario_actualizacion nvarchar(50)
+  fecha_actualizacion datetime
+  
+  Note: 'Catálogo de fiscalías que solicitan análisis DICRI'
+}
+
+Table EstadoRevisionDICRI {
+  id_estado int [pk, increment]
+  nombre_estado nvarchar(50) [unique, not null, note: 'EN_REGISTRO, PENDIENTE_REVISION, APROBADO, RECHAZADO, ELIMINADO']
+  descripcion nvarchar(255)
+  activo bit [default: 1]
+  usuario_creacion nvarchar(50) [not null]
+  fecha_creacion datetime [not null, default: `GETDATE()`]
+  
+  Note: '''
+    Catálogo de estados del flujo de revisión DICRI:
+    - EN_REGISTRO: Técnico está creando/editando
+    - PENDIENTE_REVISION: Enviado a coordinador
+    - APROBADO: Aprobado por coordinador (inmutable)
+    - RECHAZADO: Rechazado por coordinador (editable)
+    - ELIMINADO: Soft delete (activo=0)
+  '''
+}
+
+Table Investigacion {
+  id_investigacion int [pk, increment]
+  codigo_caso nvarchar(50) [unique, not null, note: 'Código único del expediente (ej: DICRI-001-2025-1001)']
+  nombre_caso nvarchar(255) [not null, note: 'Nombre descriptivo del caso']
+  fecha_inicio date [not null, note: 'Fecha de inicio del caso']
+  id_fiscalia int [not null]
+  descripcion_hechos nvarchar(max) [note: 'Descripción detallada de los hechos']
+  estado_revision_dicri nvarchar(50) [not null, default: 'EN_REGISTRO', note: 'Estado actual del flujo DICRI']
+  id_usuario_registro int [not null, note: 'Técnico DICRI que registró el expediente']
+  id_usuario_revision int [note: 'Coordinador DICRI que revisó el expediente']
+  justificacion_revision nvarchar(max) [note: 'Justificación de aprobación o rechazo']
+  fecha_revision datetime [note: 'Timestamp de la revisión']
+  activo bit [default: 1, note: 'Soft delete: 1=activo, 0=eliminado']
+  usuario_creacion nvarchar(50) [not null]
+  fecha_creacion datetime [not null, default: `GETDATE()`]
+  usuario_actualizacion nvarchar(50)
+  fecha_actualizacion datetime
+  
+  Note: '''
+    Expediente criminal con flujo de revisión DICRI.
+    Flujo: EN_REGISTRO → PENDIENTE_REVISION → APROBADO/RECHAZADO
+    Estados editables: EN_REGISTRO, RECHAZADO
+    Estados inmutables: APROBADO, ELIMINADO
+  '''
+  Indexes {
+    id_fiscalia [name: 'IX_Investigacion_Fiscalia']
+    estado_revision_dicri [name: 'IX_Investigacion_Estado']
+    activo [name: 'IX_Investigacion_Activo']
+  }
+}
+
+Table Escena {
+  id_escena int [pk, increment]
+  id_investigacion int [not null]
+  nombre_escena nvarchar(150) [not null, note: 'Ej: Escena Principal, Escena Secundaria']
+  direccion_escena nvarchar(255) [not null, note: 'Ubicación física de la escena']
+  fecha_hora_inicio datetime [not null, note: 'Inicio del trabajo en la escena']
+  fecha_hora_fin datetime [note: 'Fin del trabajo en la escena']
+  descripcion nvarchar(max) [note: 'Descripción detallada de la escena']
+  activo bit [default: 1]
+  usuario_creacion nvarchar(50) [not null]
+  fecha_creacion datetime [not null, default: `GETDATE()`]
+  usuario_actualizacion nvarchar(50)
+  fecha_actualizacion datetime
+  
+  Note: '''
+    Lugares físicos donde se recolectaron indicios.
+    Solo editables cuando el expediente está EN_REGISTRO o RECHAZADO.
+  '''
+  Indexes {
+    id_investigacion [name: 'IX_Escena_Investigacion']
+  }
+}
+
+Table TipoIndicio {
+  id_tipo_indicio int [pk, increment]
+  nombre_tipo nvarchar(100) [unique, not null, note: 'Ej: Arma de Fuego, Proyectil, Huella Digital, ADN']
+  descripcion nvarchar(255)
+  activo bit [default: 1]
+  usuario_creacion nvarchar(50) [not null]
+  fecha_creacion datetime [not null, default: `GETDATE()`]
+  usuario_actualizacion nvarchar(50)
+  fecha_actualizacion datetime
+  
+  Note: 'Catálogo de tipos de evidencia'
+}
+
+Table Indicio {
+  id_indicio int [pk, increment]
+  codigo_indicio nvarchar(50) [unique, not null, note: 'Código único de rastreo (ej: IND-001-2025)']
+  id_escena int [not null]
+  id_tipo_indicio int [not null]
+  descripcion_corta nvarchar(255) [not null, note: 'Descripción breve del indicio']
+  ubicacion_especifica nvarchar(100) [note: 'Ubicación exacta dentro de la escena']
+  fecha_hora_recoleccion datetime [not null, note: 'Timestamp de recolección']
+  id_usuario_recolector int [not null, note: 'Técnico que recolectó el indicio']
+  estado_actual nvarchar(50) [not null, default: 'RECOLECTADO', note: 'RECOLECTADO, EN_CUSTODIA, EN_ANALISIS, ANALIZADO, DEVUELTO']
+  activo bit [default: 1]
+  usuario_creacion nvarchar(50) [not null]
+  fecha_creacion datetime [not null, default: `GETDATE()`]
+  usuario_actualizacion nvarchar(50)
+  fecha_actualizacion datetime
+  
+  Note: '''
+    Evidencia física recolectada en una escena.
+    Solo editable cuando el expediente está EN_REGISTRO o RECHAZADO.
+  '''
+  Indexes {
+    id_escena [name: 'IX_Indicio_Escena']
+    id_tipo_indicio [name: 'IX_Indicio_Tipo']
+    estado_actual [name: 'IX_Indicio_Estado']
+  }
+}
+
+Table EstadoCadena {
+  id_estado_cadena int [pk, increment]
+  nombre_estado nvarchar(100) [unique, not null, note: 'RECOLECTADO, EN_CUSTODIA, EN_ANALISIS, ANALIZADO, DEVUELTO']
+  descripcion nvarchar(255)
+  activo bit [default: 1]
+  usuario_creacion nvarchar(50) [not null]
+  fecha_creacion datetime [not null, default: `GETDATE()`]
+  usuario_actualizacion nvarchar(50)
+  fecha_actualizacion datetime
+  
+  Note: 'Catálogo de estados para cadena de custodia'
+}
+
+Table CadenaCustodia {
+  id_cadena_custodia bigint [pk, increment]
+  id_indicio int [not null]
+  id_estado_cadena int [not null, note: 'Estado destino del movimiento']
+  fecha_movimiento datetime [not null, default: `GETDATE()`]
+  id_usuario_responsable int [not null, note: 'Usuario que realizó el movimiento']
+  observaciones nvarchar(max) [note: 'Notas adicionales del movimiento']
+  documento_referencia nvarchar(100) [note: 'Referencia a documento externo']
+  usuario_creacion nvarchar(50) [not null]
+  fecha_creacion datetime [not null, default: `GETDATE()`]
+  
+  Note: '''
+    Rastreo de movimientos de indicios (cadena de custodia).
+    Registra cada cambio de estado con timestamp y responsable.
+  '''
+  Indexes {
+    id_indicio [name: 'IX_CadenaCustodia_Indicio']
+    fecha_movimiento [name: 'IX_CadenaCustodia_Fecha']
+  }
+}
+
+
+// =============================================
+// RELACIONES (FOREIGN KEYS)
+// =============================================
+
+// ====== SEGURIDAD ======
+
+// Usuario <-> Perfil (N:M)
+Ref FK_UP_U: Usuario_Perfil.id_usuario > Usuario.id_usuario [delete: cascade]
+Ref FK_UP_P: Usuario_Perfil.id_perfil > Perfil.id_perfil [delete: cascade]
+
+// Perfil <-> Modulo (N:M)
+Ref FK_PM_P: Perfil_Modulo.id_perfil > Perfil.id_perfil [delete: cascade]
+Ref FK_PM_M: Perfil_Modulo.id_modulo > Modulo.id_modulo [delete: cascade]
+
+// Role <-> Modulo (N:M)
+Ref FK_RM_R: Role_Modulo.id_role > Role.id_role [delete: cascade]
+Ref FK_RM_M: Role_Modulo.id_modulo > Modulo.id_modulo [delete: cascade]
+
+// Perfil <-> Role (N:M)
+Ref FK_PR_P: Perfil_Role.id_perfil > Perfil.id_perfil [delete: cascade]
+Ref FK_PR_R: Perfil_Role.id_role > Role.id_role [delete: cascade]
+
+// Modulo -> Modulo (self-reference para jerarquía)
+Ref FK_M_MP: Modulo.id_modulo_padre > Modulo.id_modulo [delete: no action]
+
+
+// ====== NEGOCIO DICRI ======
+
+// Investigacion -> Fiscalia (N:1)
+Ref FK_INV_FIS: Investigacion.id_fiscalia > Fiscalia.id_fiscalia [delete: no action]
+
+// Investigacion -> Usuario (N:1) - Registro
+Ref FK_INV_U_REG: Investigacion.id_usuario_registro > Usuario.id_usuario [delete: no action]
+
+// Investigacion -> Usuario (N:1) - Revisión
+Ref FK_INV_U_REV: Investigacion.id_usuario_revision > Usuario.id_usuario [delete: no action]
+
+// Escena -> Investigacion (N:1)
+Ref FK_ESC_INV: Escena.id_investigacion > Investigacion.id_investigacion [delete: cascade]
+
+// Indicio -> Escena (N:1)
+Ref FK_IND_ESC: Indicio.id_escena > Escena.id_escena [delete: cascade]
+
+// Indicio -> TipoIndicio (N:1)
+Ref FK_IND_TIPO: Indicio.id_tipo_indicio > TipoIndicio.id_tipo_indicio [delete: no action]
+
+// Indicio -> Usuario (N:1) - Recolector
+Ref FK_IND_REC: Indicio.id_usuario_recolector > Usuario.id_usuario [delete: no action]
+
+// CadenaCustodia -> Indicio (N:1)
+Ref FK_CC_IND: CadenaCustodia.id_indicio > Indicio.id_indicio [delete: cascade]
+
+// CadenaCustodia -> EstadoCadena (N:1)
+Ref FK_CC_EST: CadenaCustodia.id_estado_cadena > EstadoCadena.id_estado_cadena [delete: no action]
+
+// CadenaCustodia -> Usuario (N:1) - Responsable
+Ref FK_CC_RESP: CadenaCustodia.id_usuario_responsable > Usuario.id_usuario [delete: no action]
+
+
+// =============================================
+// PROCEDIMIENTOS ALMACENADOS PRINCIPALES
+// =============================================
+
+/* 
+FLUJO DE REVISIÓN DICRI:
+
+1. sp_Investigacion_Create 
+   - Crea expediente en estado EN_REGISTRO
+   - Usuario: Técnico DICRI
+
+2. sp_Investigacion_SendToReview
+   - Cambia estado a PENDIENTE_REVISION
+   - Usuario: Técnico DICRI
+   
+3. sp_Investigacion_Approve
+   - Cambia estado a APROBADO (inmutable)
+   - Registra id_usuario_revision y justificacion_revision
+   - Usuario: Coordinador DICRI
+   
+4. sp_Investigacion_Reject
+   - Cambia estado a RECHAZADO (editable)
+   - Registra id_usuario_revision y justificacion_revision
+   - Usuario: Coordinador DICRI
+   - Técnico puede editar y reenviar a revisión
+
+5. sp_Investigacion_Delete
+   - Soft delete: activo=0 AND estado_revision_dicri='ELIMINADO'
+   - Usuario: Técnico DICRI, Coordinador DICRI, Admin
+
+PERMISOS POR ROL:
+- TECNICO_DICRI: Crear, editar (EN_REGISTRO/RECHAZADO), eliminar, enviar a revisión
+- COORDINADOR_DICRI: Ver todos, aprobar, rechazar, eliminar
+- ADMIN: Acceso completo
+*/
