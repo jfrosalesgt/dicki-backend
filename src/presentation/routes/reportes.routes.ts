@@ -108,12 +108,9 @@ router.get(
  *                   $ref: '#/components/schemas/EstadisticasGenerales'
  *       401:
  *         description: No autorizado
- *       403:
- *         description: Sin permisos para acceder a estadísticas
  */
 router.get(
   '/estadisticas-generales',
-  checkRole('COORDINADOR_DICRI', 'ADMIN'),
   reportesController.getEstadisticasGenerales
 );
 
