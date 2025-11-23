@@ -1,0 +1,132 @@
+### Test Reportes Endpoints - Sistema DICRI
+### Primero, login para obtener token (usar usuario coordinador o admin)
+
+POST http://localhost:3030/api/auth/login
+Content-Type: application/json
+
+{
+  "nombre_usuario": "coor_1",
+  "clave": "coordinador123"
+}
+
+###
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... # Reemplazar con token real del login
+
+### =================================================================
+### REPORTE DE REVISIÓN DE EXPEDIENTES
+### =================================================================
+
+### 1. Obtener reporte completo (sin filtros)
+GET http://localhost:3030/api/reportes/revision-expedientes
+Authorization: Bearer {{token}}
+
+### 2. Obtener reporte filtrado por estado APROBADO
+GET http://localhost:3030/api/reportes/revision-expedientes?estado_revision=APROBADO
+Authorization: Bearer {{token}}
+
+### 3. Obtener reporte filtrado por estado RECHAZADO
+GET http://localhost:3030/api/reportes/revision-expedientes?estado_revision=RECHAZADO
+Authorization: Bearer {{token}}
+
+### 4. Obtener reporte filtrado por estado PENDIENTE_REVISION
+GET http://localhost:3030/api/reportes/revision-expedientes?estado_revision=PENDIENTE_REVISION
+Authorization: Bearer {{token}}
+
+### 5. Obtener reporte filtrado por estado EN_REGISTRO
+GET http://localhost:3030/api/reportes/revision-expedientes?estado_revision=EN_REGISTRO
+Authorization: Bearer {{token}}
+
+### 6. Obtener reporte filtrado por rango de fechas (mes de noviembre 2025)
+GET http://localhost:3030/api/reportes/revision-expedientes?fecha_inicio=2025-11-01&fecha_fin=2025-11-30
+Authorization: Bearer {{token}}
+
+### 7. Obtener reporte filtrado por rango de fechas (octubre 2025)
+GET http://localhost:3030/api/reportes/revision-expedientes?fecha_inicio=2025-10-01&fecha_fin=2025-10-31
+Authorization: Bearer {{token}}
+
+### 8. Obtener reporte con filtro combinado: estado APROBADO en noviembre 2025
+GET http://localhost:3030/api/reportes/revision-expedientes?estado_revision=APROBADO&fecha_inicio=2025-11-01&fecha_fin=2025-11-30
+Authorization: Bearer {{token}}
+
+### 9. Obtener reporte con filtro combinado: estado RECHAZADO desde inicio de año
+GET http://localhost:3030/api/reportes/revision-expedientes?estado_revision=RECHAZADO&fecha_inicio=2025-01-01
+Authorization: Bearer {{token}}
+
+### 10. Obtener reporte del año 2025 completo
+GET http://localhost:3030/api/reportes/revision-expedientes?fecha_inicio=2025-01-01&fecha_fin=2025-12-31
+Authorization: Bearer {{token}}
+
+### =================================================================
+### ESTADÍSTICAS GENERALES
+### =================================================================
+
+### 11. Obtener estadísticas generales del sistema
+GET http://localhost:3030/api/reportes/estadisticas-generales
+Authorization: Bearer {{token}}
+
+### =================================================================
+### PRUEBAS DE VALIDACIÓN Y ERRORES
+### =================================================================
+
+### 12. Intentar acceder sin autenticación (debe fallar con 401)
+GET http://localhost:3030/api/reportes/revision-expedientes
+
+### 13. Fecha inicio posterior a fecha fin (debe fallar con 400)
+GET http://localhost:3030/api/reportes/revision-expedientes?fecha_inicio=2025-12-31&fecha_fin=2025-01-01
+Authorization: Bearer {{token}}
+
+### 14. Estado inválido (debe fallar con 400)
+GET http://localhost:3030/api/reportes/revision-expedientes?estado_revision=ESTADO_INVALIDO
+Authorization: Bearer {{token}}
+
+### 15. Formato de fecha inválido (debe fallar con 400)
+GET http://localhost:3030/api/reportes/revision-expedientes?fecha_inicio=01-11-2025
+Authorization: Bearer {{token}}
+
+### =================================================================
+### NOTAS DE USO
+### =================================================================
+# 
+# - Solo usuarios con rol COORDINADOR_DICRI o ADMIN pueden acceder a reportes
+# - Las fechas deben estar en formato ISO 8601 (YYYY-MM-DD)
+# - Los filtros son opcionales y se pueden combinar
+# - Estados válidos: EN_REGISTRO, PENDIENTE_REVISION, APROBADO, RECHAZADO
+# 
+# EJEMPLO DE RESPUESTA DE REPORTE:
+# {
+#   "success": true,
+#   "message": "Reporte de revisión de expedientes obtenido exitosamente",
+#   "data": [
+#     {
+#       "codigo_caso": "MP001-2025-1001",
+#       "nombre_caso": "Homicidio en Zona 10",
+#       "nombre_fiscalia": "Fiscalía de Delitos contra la Vida",
+#       "fecha_registro": "2025-11-20T10:00:00Z",
+#       "tecnico_registra": "Juan Pérez",
+#       "estado_actual": "APROBADO",
+#       "fecha_revision": "2025-11-22T15:30:00Z",
+#       "coordinador_revision": "María González",
+#       "justificacion_revision": "Registro completo y validado"
+#     }
+#   ]
+# }
+#
+# EJEMPLO DE RESPUESTA DE ESTADÍSTICAS:
+# {
+#   "success": true,
+#   "message": "Estadísticas generales obtenidas exitosamente",
+#   "data": {
+#     "total_expedientes": 45,
+#     "en_registro": 12,
+#     "pendiente_revision": 8,
+#     "aprobados": 20,
+#     "rechazados": 5,
+#     "total_indicios": 156,
+#     "expedientes_por_fiscalia": [
+#       {
+#         "nombre_fiscalia": "Fiscalía de Delitos contra la Vida",
+#         "total": 25
+#       }
+#     ]
+#   }
+# }
