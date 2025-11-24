@@ -20,16 +20,12 @@ export class InvestigacionService {
   }
 
   async updateInvestigacion(id: number, investigacionData: UpdateInvestigacionDTO): Promise<void> {
-    // Verificar que existe
     await this.getInvestigacionById(id);
-    
     await this.investigacionRepository.update(id, investigacionData);
   }
 
   async deleteInvestigacion(id: number, usuario_actualizacion: string): Promise<void> {
-    // Verificar que existe
     await this.getInvestigacionById(id);
-    
     await this.investigacionRepository.delete(id, usuario_actualizacion);
   }
 
@@ -38,10 +34,8 @@ export class InvestigacionService {
   }
 
   async sendToReview(id: number, usuario_envio: string): Promise<void> {
-    // Verificar que existe
     const investigacion = await this.getInvestigacionById(id);
     
-    // Validar que está en estado correcto
     if (!['EN_REGISTRO', 'RECHAZADO'].includes(investigacion.estado_revision_dicri)) {
       throw ApiError.badRequest('El expediente debe estar en estado EN_REGISTRO o RECHAZADO para enviarse a revisión');
     }
@@ -50,10 +44,8 @@ export class InvestigacionService {
   }
 
   async approveInvestigacion(id: number, id_usuario_coordinador: number, usuario_actualizacion: string): Promise<void> {
-    // Verificar que existe
     const investigacion = await this.getInvestigacionById(id);
     
-    // Validar que está en estado correcto
     if (!['PENDIENTE_REVISION', 'RECHAZADO'].includes(investigacion.estado_revision_dicri)) {
       throw ApiError.badRequest('El expediente debe estar en estado PENDIENTE_REVISION o RECHAZADO para aprobarse');
     }
@@ -62,15 +54,12 @@ export class InvestigacionService {
   }
 
   async rejectInvestigacion(id: number, id_usuario_coordinador: number, justificacion: string, usuario_actualizacion: string): Promise<void> {
-    // Verificar que existe
     const investigacion = await this.getInvestigacionById(id);
     
-    // Validar que está en estado correcto
     if (investigacion.estado_revision_dicri !== 'PENDIENTE_REVISION') {
       throw ApiError.badRequest('El expediente debe estar en estado PENDIENTE_REVISION para rechazarse');
     }
 
-    // Validar justificación
     if (!justificacion || justificacion.trim() === '') {
       throw ApiError.badRequest('La justificación de rechazo es obligatoria');
     }

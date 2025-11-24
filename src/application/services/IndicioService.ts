@@ -22,13 +22,11 @@ export class IndicioService {
   }
 
   async createIndicio(indicioData: CreateIndicioDTO): Promise<Indicio> {
-    // Verificar que la escena existe
     const escena = await this.escenaRepository.findById(indicioData.id_escena);
     if (!escena) {
       throw ApiError.notFound('Escena no encontrada');
     }
 
-    // Verificar que el expediente asociado no esté aprobado
     const investigacion = await this.investigacionRepository.findById(escena.id_investigacion);
     if (!investigacion) {
       throw ApiError.notFound('Expediente no encontrado');
@@ -42,16 +40,13 @@ export class IndicioService {
   }
 
   async updateIndicio(id: number, indicioData: UpdateIndicioDTO): Promise<void> {
-    // Verificar que existe
     const indicio = await this.getIndicioById(id);
     
-    // Verificar que la escena existe y obtener el expediente
     const escena = await this.escenaRepository.findById(indicio.id_escena);
     if (!escena) {
       throw ApiError.notFound('Escena no encontrada');
     }
 
-    // Verificar que el expediente no esté aprobado
     const investigacion = await this.investigacionRepository.findById(escena.id_investigacion);
     if (!investigacion) {
       throw ApiError.notFound('Expediente no encontrado');
@@ -65,16 +60,13 @@ export class IndicioService {
   }
 
   async deleteIndicio(id: number, usuario_actualizacion: string): Promise<void> {
-    // Verificar que existe
     const indicio = await this.getIndicioById(id);
     
-    // Verificar que la escena existe y obtener el expediente
     const escena = await this.escenaRepository.findById(indicio.id_escena);
     if (!escena) {
       throw ApiError.notFound('Escena no encontrada');
     }
 
-    // Verificar que el expediente no esté aprobado
     const investigacion = await this.investigacionRepository.findById(escena.id_investigacion);
     if (!investigacion) {
       throw ApiError.notFound('Expediente no encontrado');
@@ -92,26 +84,21 @@ export class IndicioService {
   }
 
   async getIndiciosByExpediente(idExpediente: number): Promise<Indicio[]> {
-    // Verificar que el expediente existe
     const investigacion = await this.investigacionRepository.findById(idExpediente);
     if (!investigacion) {
       throw ApiError.notFound('Expediente no encontrado');
     }
 
-    // Obtener todas las escenas del expediente
     const escenas = await this.escenaRepository.findByInvestigacion(idExpediente);
     
-    // Obtener indicios de todas las escenas
     const indiciosPorEscena = await Promise.all(
       escenas.map(escena => this.indicioRepository.findByEscena(escena.id_escena))
     );
 
-    // Aplanar el array de arrays
     return indiciosPorEscena.flat();
   }
 
   async getIndiciosByEscena(idEscena: number): Promise<Indicio[]> {
-    // Verificar que la escena existe
     const escena = await this.escenaRepository.findById(idEscena);
     if (!escena) {
       throw ApiError.notFound('Escena no encontrada');

@@ -15,7 +15,6 @@ export class ReportesRepository implements IReportesRepository {
     
     const request = pool.request();
 
-    // Agregar parámetros opcionales
     if (filters?.fecha_inicio) {
       request.input('fecha_inicio', sql.DateTime, filters.fecha_inicio);
     } else {
@@ -42,7 +41,6 @@ export class ReportesRepository implements IReportesRepository {
   async obtenerEstadisticasGenerales(): Promise<EstadisticasGenerales> {
     const pool = this.db.getPool();
 
-    // Obtener conteos por estado
     const estadosResult = await pool.request().query(`
       SELECT 
         COUNT(*) as total_expedientes,
@@ -54,14 +52,12 @@ export class ReportesRepository implements IReportesRepository {
       WHERE activo = 1
     `);
 
-    // Obtener total de indicios
     const indiciosResult = await pool.request().query(`
       SELECT COUNT(*) as total_indicios
       FROM Indicio
       WHERE activo = 1
     `);
 
-    // Obtener expedientes por fiscalía
     const fiscaliasResult = await pool.request().query(`
       SELECT 
         f.nombre_fiscalia,

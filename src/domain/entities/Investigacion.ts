@@ -15,7 +15,6 @@ export interface Investigacion {
   fecha_creacion: Date;
   usuario_actualizacion?: string;
   fecha_actualizacion?: Date;
-  // Campos adicionales de la consulta con JOIN
   nombre_fiscalia?: string;
 }
 

@@ -13,7 +13,6 @@ export interface Indicio {
   fecha_creacion: Date;
   usuario_actualizacion?: string;
   fecha_actualizacion?: Date;
-  // Campos adicionales de JOINs
   nombre_escena?: string;
   nombre_tipo?: string;
   nombre_recolector?: string;

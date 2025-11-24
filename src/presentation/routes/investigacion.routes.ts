@@ -13,12 +13,8 @@ import {
   rejectInvestigacionValidator,
   investigacionFiltersValidator,
 } from '../validators/investigacion.validator';
-import {
-  createIndicioValidator,
-} from '../validators/indicio.validator';
-import {
-  createEscenaValidator,
-} from '../validators/escena.validator';
+import { createIndicioValidator } from '../validators/indicio.validator';
+import { createEscenaValidator } from '../validators/escena.validator';
 
 const router = Router();
 const investigacionController = new InvestigacionController();
@@ -176,7 +172,7 @@ router.put(
   '/:id',
   checkRole('TECNICO_DICRI', 'COORDINADOR_DICRI', 'ADMIN'),
   validate(updateInvestigacionValidator),
-investigacionController.updateInvestigacion
+  investigacionController.updateInvestigacion
 );
 
 /**

@@ -20,13 +20,11 @@ export class EscenaService {
   }
 
   async createEscena(escenaData: CreateEscenaDTO): Promise<Escena> {
-    // Verificar que el expediente existe
     const investigacion = await this.investigacionRepository.findById(escenaData.id_investigacion);
     if (!investigacion) {
       throw ApiError.notFound('Expediente no encontrado');
     }
 
-    // Verificar que el expediente no esté aprobado
     if (investigacion.estado_revision_dicri === 'APROBADO') {
       throw ApiError.badRequest('No se pueden agregar escenas a un expediente aprobado');
     }
@@ -35,16 +33,13 @@ export class EscenaService {
   }
 
   async updateEscena(id: number, escenaData: UpdateEscenaDTO): Promise<void> {
-    // Verificar que existe
     const escena = await this.getEscenaById(id);
     
-    // Verificar que el expediente existe
     const investigacion = await this.investigacionRepository.findById(escena.id_investigacion);
     if (!investigacion) {
       throw ApiError.notFound('Expediente no encontrado');
     }
 
-    // Solo permitir modificar escenas si el expediente está EN_REGISTRO o RECHAZADO
     if (!['EN_REGISTRO', 'RECHAZADO'].includes(investigacion.estado_revision_dicri)) {
       throw ApiError.badRequest(
         `No se pueden modificar escenas de un expediente en estado ${investigacion.estado_revision_dicri}. ` +
@@ -56,16 +51,13 @@ export class EscenaService {
   }
 
   async deleteEscena(id: number, usuario_actualizacion: string): Promise<void> {
-    // Verificar que existe
     const escena = await this.getEscenaById(id);
     
-    // Verificar que el expediente existe
     const investigacion = await this.investigacionRepository.findById(escena.id_investigacion);
     if (!investigacion) {
       throw ApiError.notFound('Expediente no encontrado');
     }
 
-    // Solo permitir eliminar escenas si el expediente está EN_REGISTRO o RECHAZADO
     if (!['EN_REGISTRO', 'RECHAZADO'].includes(investigacion.estado_revision_dicri)) {
       throw ApiError.badRequest(
         `No se pueden eliminar escenas de un expediente en estado ${investigacion.estado_revision_dicri}. ` +
@@ -77,7 +69,6 @@ export class EscenaService {
   }
 
   async getEscenasByExpediente(idExpediente: number): Promise<Escena[]> {
-    // Verificar que el expediente existe
     const investigacion = await this.investigacionRepository.findById(idExpediente);
     if (!investigacion) {
       throw ApiError.notFound('Expediente no encontrado');

@@ -90,7 +90,6 @@ export class AuthController {
         throw new Error('Usuario no autenticado');
       }
 
-      // Obtener información completa del usuario
       const usuarioRepository = new UsuarioRepository();
       const perfilRepository = new PerfilRepository();
       const roleRepository = new RoleRepository();

@@ -68,7 +68,6 @@ export class InvestigacionRepository implements IInvestigacionRepository {
 
     let investigaciones: Investigacion[] = result.recordset;
 
-    // Filtros adicionales que no están en el SP
     if (filters?.estado_revision) {
       investigaciones = investigaciones.filter(
         (inv) => inv.estado_revision_dicri === filters.estado_revision
